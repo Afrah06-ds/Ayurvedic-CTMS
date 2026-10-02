@@ -14,10 +14,12 @@ import {
   Loader2,
   Sparkles,
   ArrowRight,
-  Database,
+  KeyRound,
+  Filter,
 } from 'lucide-react';
 import { getCachedUsers } from '@/lib/storage';
-import { User } from '@/lib/types';
+import { User, UserType } from '@/lib/types';
+import { getUserTypeConfig } from '@/lib/permissions';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,6 +31,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cachedUsersList, setCachedUsersList] = useState<User[]>([]);
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState<'all' | UserType>('all');
 
   // If already logged in, redirect
   useEffect(() => {
@@ -37,7 +40,7 @@ export default function LoginPage() {
     }
   }, [user, authLoading, router]);
 
-  // Load existing users to show convenient quick-fill buttons for testing
+  // Load existing users to show quick-fill buttons
   useEffect(() => {
     try {
       const list = getCachedUsers();
@@ -81,14 +84,18 @@ export default function LoginPage() {
     );
   }
 
+  const filteredQuickUsers = cachedUsersList.filter(
+    (u) => selectedTypeFilter === 'all' || u.userType === selectedTypeFilter
+  );
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center relative overflow-hidden px-4 py-12">
-      {/* Background Decorative Gradient Orbs */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-[400px] h-[400px] bg-cyan-600/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Background Decorative Orbs */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-[450px] h-[450px] bg-cyan-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-md w-full mx-auto relative z-10">
-        {/* CTMS Header */}
+      <div className="max-w-lg w-full mx-auto relative z-10">
+        {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-cyan-500 text-white shadow-xl shadow-blue-500/20 mb-4 ring-8 ring-blue-500/10">
             <Activity className="w-8 h-8" />
@@ -97,7 +104,7 @@ export default function LoginPage() {
             CTMS Portal Login
           </h1>
           <p className="text-sm text-slate-400 mt-2">
-            Clinical Trial Management & RBAC Security System
+            Clinical Trial Management & User Type Security Access
           </p>
         </div>
 
@@ -146,7 +153,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full pl-10 pr-11 py-3 bg-slate-800/80 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                  className="w-full pl-10 pr-11 py-3 bg-slate-800/80 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-mono"
                 />
                 <button
                   type="button"
@@ -178,42 +185,38 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Fill Section */}
-          <div className="mt-8 pt-6 border-t border-slate-800">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
+          {/* Quick Demo Fill Section with User Type Selector */}
+          <div className="mt-8 pt-6 border-t border-slate-800 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                Quick Test Credentials
+                Quick Test Accounts by User Type
               </span>
-              <span className="text-[10px] text-slate-500">1-Click Auto Fill</span>
+
+              {/* User Type Filter Dropdown */}
+              <div className="flex items-center gap-1.5">
+                <Filter className="w-3 h-3 text-slate-500" />
+                <select
+                  value={selectedTypeFilter}
+                  onChange={(e) => setSelectedTypeFilter(e.target.value as any)}
+                  className="bg-slate-800 border border-slate-700 text-slate-300 text-[11px] rounded-lg px-2 py-1 focus:outline-none cursor-pointer"
+                >
+                  <option value="all">All User Types (7)</option>
+                  <option value="principal_investigator">Principal Investigator</option>
+                  <option value="study_coordinator">Study Coordinator</option>
+                  <option value="monitor">Monitor</option>
+                  <option value="ethics_committee">Ethics Committee</option>
+                  <option value="pharmacovigilance">Pharmacovigilance</option>
+                  <option value="administration">Administration</option>
+                  <option value="regulator_read_only">Regulator - Read Only</option>
+                </select>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              {/* Pre-seeded Admin pill */}
-              <button
-                type="button"
-                onClick={() => handleQuickFill('admin@ctms.com', 'admin@123')}
-                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/15 hover:border-purple-500/30 text-left transition-all group"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-purple-300">Admin Account</span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                      admin
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 font-mono mt-0.5">admin@ctms.com / admin@123</p>
-                </div>
-                <span className="text-xs text-purple-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                  Use
-                </span>
-              </button>
-
-              {/* Created users quick pills */}
-              {cachedUsersList
-                .filter((u) => u.email.toLowerCase() !== 'admin@ctms.com')
-                .slice(0, 3)
-                .map((u) => (
+            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+              {filteredQuickUsers.map((u) => {
+                const config = getUserTypeConfig(u.userType);
+                return (
                   <button
                     key={u.id}
                     type="button"
@@ -222,9 +225,11 @@ export default function LoginPage() {
                   >
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-slate-200">{u.fullName}</span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-blue-500/15 text-blue-300 border border-blue-500/20">
-                          {u.role}
+                        <span className="text-xs font-semibold text-slate-100">{u.fullName}</span>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded border ${config.badgeBg} ${config.badgeText} ${config.badgeBorder}`}
+                        >
+                          {config.label}
                         </span>
                       </div>
                       <p className="text-[11px] text-slate-400 font-mono mt-0.5">
@@ -232,19 +237,20 @@ export default function LoginPage() {
                       </p>
                     </div>
                     <span className="text-xs text-blue-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                      Use
+                      Auto Fill
                     </span>
                   </button>
-                ))}
+                );
+              })}
             </div>
           </div>
         </div>
 
-        {/* Bottom Security Note */}
+        {/* Footer Note */}
         <div className="mt-6 text-center">
           <p className="text-xs text-slate-500 flex items-center justify-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-emerald-500/80" />
-            Temporary Cached Database • Ready for Supabase Cloud
+            CTMS Role-Based Access Control Active
           </p>
         </div>
       </div>

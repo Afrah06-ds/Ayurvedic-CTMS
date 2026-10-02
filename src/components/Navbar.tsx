@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { getUserTypeConfig } from '@/lib/permissions';
 import {
   Activity,
   Shield,
@@ -11,7 +12,8 @@ import {
   LogOut,
   User as UserIcon,
   Database,
-  Sparkles,
+  Building2,
+  FlaskConical,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -20,7 +22,8 @@ export const Navbar: React.FC = () => {
 
   if (!user) return null;
 
-  const isAdmin = user.role === 'admin';
+  const isAdmin = user.role === 'admin' || user.userType === 'administration';
+  const typeConfig = getUserTypeConfig(user.userType);
 
   return (
     <header className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-slate-100">
@@ -54,6 +57,30 @@ export const Navbar: React.FC = () => {
                 <span>Homepage</span>
               </Link>
 
+              <Link
+                href="/trials"
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+                  pathname.startsWith('/trials')
+                    ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                }`}
+              >
+                <FlaskConical className="w-4 h-4 text-purple-400" />
+                <span>Trial Proposals</span>
+              </Link>
+
+              <Link
+                href="/centres"
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+                  pathname.startsWith('/centres')
+                    ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                }`}
+              >
+                <Building2 className="w-4 h-4 text-cyan-400" />
+                <span>Centres</span>
+              </Link>
+
               {isAdmin && (
                 <Link
                   href="/admin"
@@ -72,7 +99,7 @@ export const Navbar: React.FC = () => {
 
           {/* Right Info & Actions */}
           <div className="flex items-center gap-3">
-            {/* Cache / Supabase status indicator */}
+            {/* Cache indicator */}
             <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-[11px] text-slate-400">
               <Database className="w-3 h-3 text-emerald-400" />
               <span>Temp Cache</span>
@@ -90,13 +117,9 @@ export const Navbar: React.FC = () => {
                     {user.fullName}
                   </span>
                   <span
-                    className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded border ${
-                      isAdmin
-                        ? 'bg-purple-500/15 text-purple-300 border-purple-500/30'
-                        : 'bg-blue-500/15 text-blue-300 border-blue-500/30'
-                    }`}
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded border ${typeConfig.badgeBg} ${typeConfig.badgeText} ${typeConfig.badgeBorder}`}
                   >
-                    {user.role}
+                    {typeConfig.label}
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-400 leading-tight">{user.email}</p>
