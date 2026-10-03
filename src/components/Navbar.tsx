@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getUserTypeConfig } from '@/lib/permissions';
 import {
-  Activity,
   Shield,
   Home,
   LogOut,
@@ -14,6 +13,8 @@ import {
   Database,
   Building2,
   FlaskConical,
+  Pill,
+  Leaf,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -29,22 +30,20 @@ export const Navbar: React.FC = () => {
     <header className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-slate-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Brand Logo */}
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
-                <Activity className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-blue-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
+                <Leaf className="w-5 h-5 text-emerald-100" />
               </div>
               <div>
                 <span className="text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
-                  CTMS <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">Portal</span>
+                  Ayurvedic <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">CTMS</span>
                 </span>
-                <p className="text-[10px] text-slate-400 -mt-1 hidden sm:block">Clinical Trial Management System</p>
+                <p className="text-[10px] text-slate-400 -mt-1 hidden sm:block">AYUSH Clinical Trial Management</p>
               </div>
             </Link>
 
-            {/* Main Navigation Links */}
-            <nav className="flex items-center gap-1 ml-4">
+            <nav className="flex items-center gap-1 ml-4 flex-wrap">
               <Link
                 href="/"
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
@@ -81,6 +80,19 @@ export const Navbar: React.FC = () => {
                 <span>Centres</span>
               </Link>
 
+              <Link
+                href="/drugs"
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+                  pathname.startsWith('/drugs')
+                    ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 font-semibold'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                }`}
+              >
+                <Pill className="w-4 h-4 text-emerald-400" />
+                <span>Drug Module</span>
+                <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.2 rounded font-mono">AYUSH</span>
+              </Link>
+
               {isAdmin && (
                 <Link
                   href="/admin"
@@ -91,22 +103,19 @@ export const Navbar: React.FC = () => {
                   }`}
                 >
                   <Shield className="w-4 h-4 text-indigo-400" />
-                  <span>Admin Dashboard</span>
+                  <span>Admin Panel</span>
                 </Link>
               )}
             </nav>
           </div>
 
-          {/* Right Info & Actions */}
           <div className="flex items-center gap-3">
-            {/* Cache indicator */}
             <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-[11px] text-slate-400">
               <Database className="w-3 h-3 text-emerald-400" />
               <span>Temp Cache</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             </div>
 
-            {/* User Profile Pill */}
             <div className="flex items-center gap-3 bg-slate-800/60 border border-slate-700/60 rounded-xl px-3 py-1.5">
               <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
                 <UserIcon className="w-4 h-4" />
@@ -126,7 +135,6 @@ export const Navbar: React.FC = () => {
               </div>
             </div>
 
-            {/* Logout Button */}
             <button
               onClick={logout}
               title="Sign Out"

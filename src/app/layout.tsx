@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
+import { DrugProvider } from '@/context/DrugContext';
 
 export const metadata: Metadata = {
-  title: 'CTMS - Clinical Trial Management System',
-  description: 'Enterprise Clinical Trial Management System Portal',
+  title: 'Ayurvedic CTMS - Clinical Trial Management System',
+  description: 'Ayurvedic & AYUSH Clinical Trial Management System Portal',
 };
 
 export default function RootLayout({
@@ -15,8 +16,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="antialiased min-h-screen bg-slate-950 text-slate-100 selection:bg-blue-600 selection:text-white">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <DrugProvider>{children}</DrugProvider>
+        </AuthProvider>
       </body>
     </html>
   );
 }
+

@@ -74,6 +74,7 @@ export interface CreateUserData {
   status?: 'active' | 'inactive';
 }
 
+<<<<<<< Updated upstream
 export type CentreType =
   | 'Government Hospital'
   | 'Private Medical Center'
@@ -205,3 +206,73 @@ export interface CreateTrialTeamData {
 
 
 
+=======
+export type DrugStatus = 'Active' | 'Inactive' | 'Under Review' | 'Quarantine' | 'Discontinued' | 'Recalled';
+
+export interface DrugComponent {
+  id: string;
+  name: string;
+  strength: string; // e.g. "300 mg"
+  botanicalName?: string;
+  partUsed?: string;
+}
+
+export interface Drug {
+  id: string; // e.g. "DRUG001"
+  drugName: string; // e.g. "Ashwagandha Extract"
+  genericName: string; // e.g. "Withania somnifera Extract"
+  drugType: string; // e.g. "Indian System of Medicine (AYUSH)"
+  formulationName: string; // e.g. "Ashwagandha Herbal Capsule"
+  dosageForm: string; // e.g. "Capsule"
+  strength: string; // e.g. "500 mg"
+  manufacturer: string; // e.g. "AIIA Research Pharmacy"
+  batchNumber: string; // e.g. "ASH2026B01"
+  expiryDate: string; // e.g. "30-09-2028"
+  routeOfAdministration: string; // e.g. "Oral"
+  indication: string; // e.g. "Stress and General Wellness"
+  trialPhase: string; // e.g. "Phase II"
+  ctriRegistrationNumber: string; // e.g. "CTRI/2026/09/000001"
+  cdscoPermissionStatus: string; // e.g. "Not Applicable"
+  assignedCentre: string; // e.g. "AIIA – Chennai Centre"
+  principalInvestigator: string; // e.g. "Dr. Arjun Kumar"
+  availableQuantity: string; // e.g. "500 Capsules"
+  frequency: string; // e.g. "Once daily"
+  treatmentDuration: string; // e.g. "12 weeks"
+  drugStatus: DrugStatus; // e.g. "Active"
+  componentCount: number; // e.g. 3
+  components: DrugComponent[];
+  totalDosage: string; // e.g. "500 mg per capsule"
+  storageConditions?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface CreateDrugData {
+  id?: string;
+  drugName: string;
+  genericName: string;
+  drugType: string;
+  formulationName: string;
+  dosageForm: string;
+  strength: string;
+  manufacturer: string;
+  batchNumber: string;
+  expiryDate: string;
+  routeOfAdministration: string;
+  indication: string;
+  trialPhase: string;
+  ctriRegistrationNumber: string;
+  cdscoPermissionStatus: string;
+  assignedCentre: string;
+  principalInvestigator: string;
+  availableQuantity: string;
+  frequency: string;
+  treatmentDuration: string;
+  drugStatus?: DrugStatus;
+  componentCount?: number;
+  components: Array<{ name: string; strength: string; botanicalName?: string; partUsed?: string }>;
+  totalDosage: string;
+  storageConditions?: string;
+}
+
+>>>>>>> Stashed changes
