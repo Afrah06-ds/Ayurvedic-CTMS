@@ -54,7 +54,7 @@ export default function TrialsPage() {
 
 function TrialsContent() {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'admin' || user?.userType === 'administration';
+  const isAdmin = user?.role === 'admin' || user?.userType === 'administration' || user?.userType === 'system_administrator';
 
   // Data states
   const [proposals, setProposals] = useState<TrialProposal[]>([]);
@@ -225,7 +225,7 @@ function TrialsContent() {
           selectedCentreIds,
           proposalStatus,
           proposedBy: userName,
-        });
+        }, user);
         setFormSuccess(`Trial Proposal "${trialId}" updated successfully!`);
       } else {
         addProposalToCache({
@@ -246,7 +246,7 @@ function TrialsContent() {
           selectedCentreIds,
           proposalStatus,
           proposedBy: userName,
-        });
+        }, user);
         setFormSuccess(`Trial Proposal "${trialId}" created and submitted successfully!`);
       }
 
@@ -457,11 +457,13 @@ function TrialsContent() {
 
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => setViewingProposal(p)}
+                        onClick={() => {
+                          window.location.href = `/trials/${encodeURIComponent(p.trialId)}`;
+                        }}
                         className="px-3 py-1.5 rounded-lg bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-blue-400 font-semibold flex items-center gap-1 transition-colors"
                       >
                         <Eye className="w-3.5 h-3.5" />
-                        <span>View Protocol</span>
+                        <span>Open Dashboard</span>
                       </button>
                       <button
                         onClick={() => handleOpenEditForm(p)}

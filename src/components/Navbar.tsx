@@ -15,7 +15,9 @@ import {
   FlaskConical,
   Pill,
   Leaf,
+  HeartPulse,
 } from 'lucide-react';
+import { hasPermission } from '@/lib/permissions';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -23,7 +25,7 @@ export const Navbar: React.FC = () => {
 
   if (!user) return null;
 
-  const isAdmin = user.role === 'admin' || user.userType === 'administration';
+  const isAdmin = user.role === 'admin' || user.userType === 'administration' || user.userType === 'system_administrator';
   const typeConfig = getUserTypeConfig(user.userType);
 
   return (
@@ -92,6 +94,20 @@ export const Navbar: React.FC = () => {
                 <span>Drug Module</span>
                 <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.2 rounded font-mono">AYUSH</span>
               </Link>
+
+              {hasPermission(user, 'view_safety_reports') && (
+                <Link
+                  href="/pharmacovigilance"
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+                    pathname.startsWith('/pharmacovigilance')
+                      ? 'bg-rose-600/20 text-rose-300 border border-rose-500/30'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                  }`}
+                >
+                  <HeartPulse className="w-4 h-4 text-rose-400" />
+                  <span>Pharmacovigilance</span>
+                </Link>
+              )}
 
               {isAdmin && (
                 <Link

@@ -59,7 +59,7 @@ export default function CentresPage() {
 
 function CentresContent() {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'admin' || user?.userType === 'administration';
+  const isAdmin = user?.role === 'admin' || user?.userType === 'administration' || user?.userType === 'system_administrator';
 
   // Data state
   const [centres, setCentres] = useState<Centre[]>([]);

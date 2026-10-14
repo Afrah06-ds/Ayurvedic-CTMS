@@ -5,6 +5,8 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
 import { User, Role, UserType, PermissionKey } from '@/lib/types';
+import { getCachedCentres } from '@/lib/centreStorage';
+import { getCachedProposals } from '@/lib/proposalStorage';
 import {
   USER_TYPES_CONFIG,
   ALL_PERMISSIONS_LIST,
@@ -60,6 +62,8 @@ function AdminDashboardContent() {
   );
   const [department, setDepartment] = useState('');
   const [phone, setPhone] = useState('');
+  const [assignedTrialIds, setAssignedTrialIds] = useState<string[]>([]);
+  const [assignedCentreIds, setAssignedCentreIds] = useState<string[]>([]);
   const [status, setStatus] = useState<'active' | 'inactive'>('active');
 
   // UI States
@@ -82,6 +86,17 @@ function AdminDashboardContent() {
     loadUsers();
   }, [getUsersList]);
 
+  useEffect(() => {
+    const trials = getCachedProposals();
+    const centres = getCachedCentres();
+    if (assignedTrialIds.length === 0 && trials.length > 0) {
+      setAssignedTrialIds([trials[0].id]);
+    }
+    if (assignedCentreIds.length === 0 && centres.length > 0) {
+      setAssignedCentreIds([centres[0].id]);
+    }
+  }, [assignedTrialIds.length, assignedCentreIds.length]);
+
   // When UserType selection changes in dropdown, auto update default permissions & suggested department
   const handleUserTypeChange = (newType: UserType) => {
     setSelectedUserType(newType);
@@ -90,6 +105,18 @@ function AdminDashboardContent() {
     const config = getUserTypeConfig(newType);
     if (!department || Object.values(USER_TYPES_CONFIG).some((c) => c.label === department)) {
       setDepartment(config.label);
+    }
+    if (assignedTrialIds.length === 0) {
+      const proposals = getCachedProposals();
+      if (proposals.length > 0) {
+        setAssignedTrialIds([proposals[0].id]);
+      }
+    }
+    if (assignedCentreIds.length === 0) {
+      const centres = getCachedCentres();
+      if (centres.length > 0) {
+        setAssignedCentreIds([centres[0].id]);
+      }
     }
   };
 
@@ -116,7 +143,7 @@ function AdminDashboardContent() {
     }
 
     const config = getUserTypeConfig(selectedUserType);
-    const computedRole: Role = selectedUserType === 'administration' ? 'admin' : 'user';
+    const computedRole: Role = selectedUserType === 'administration' || selectedUserType === 'system_administrator' ? 'admin' : 'user';
 
     setIsSubmitting(true);
     const result = await createUser({
@@ -128,6 +155,8 @@ function AdminDashboardContent() {
       permissions: customPermissions,
       department: department || config.label,
       phone,
+      assignedTrialIds,
+      assignedCentreIds,
       status,
     });
     setIsSubmitting(false);
@@ -143,6 +172,8 @@ function AdminDashboardContent() {
       setPhone('');
       setSelectedUserType('principal_investigator');
       setCustomPermissions(getDefaultPermissions('principal_investigator'));
+      setAssignedTrialIds([]);
+      setAssignedCentreIds([]);
       setStatus('active');
       loadUsers();
     } else {
@@ -182,7 +213,7 @@ function AdminDashboardContent() {
 
   const totalUsers = users.length;
   const activeCount = users.filter((u) => u.status === 'active').length;
-  const adminCount = users.filter((u) => u.userType === 'administration' || u.role === 'admin').length;
+  const adminCount = users.filter((u) => u.userType === 'administration' || u.userType === 'system_administrator' || u.role === 'admin').length;
 
   const currentTypeConfig = getUserTypeConfig(selectedUserType);
 
@@ -199,7 +230,7 @@ function AdminDashboardContent() {
             User Type Management & Granular RBAC Permissions
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Assign user roles (PI, Study Coordinator, Monitor, Ethics, PV, Admin, Regulator) and enforce permissions upon account creation.
+            Assign users to trial-specific roles (System Administrator, PI, Doctor, Study Coordinator, PV/Safety, Data Manager, Viewer) with controlled centre and trial access.
           </p>
         </div>
 
@@ -240,7 +271,7 @@ function AdminDashboardContent() {
             </div>
           </div>
           <p className="text-2xl font-bold text-white mt-2">{totalUsers}</p>
-          <span className="text-[11px] text-slate-500">Across 7 CTMS User Types</span>
+          <span className="text-[11px] text-slate-500">Across 7 CTMS Team Roles</span>
         </div>
 
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
@@ -273,7 +304,7 @@ function AdminDashboardContent() {
             </div>
           </div>
           <p className="text-2xl font-bold text-white mt-2">7 Types</p>
-          <span className="text-[11px] text-cyan-400/90">PI, Coord, CRA, Ethics, PV, Admin, Regulator</span>
+          <span className="text-[11px] text-cyan-400/90">PI, Doctor, Coordinator, PV, Data Manager, Viewer, Admin</span>
         </div>
       </div>
 
@@ -332,13 +363,13 @@ function AdminDashboardContent() {
                   onChange={(e) => handleUserTypeChange(e.target.value as UserType)}
                   className="w-full px-4 py-3 bg-slate-800 border-2 border-blue-500/60 rounded-xl text-white font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all cursor-pointer shadow-lg"
                 >
-                  <option value="principal_investigator">Principal Investigator</option>
-                  <option value="study_coordinator">Study Coordinator</option>
-                  <option value="monitor">Monitor</option>
-                  <option value="ethics_committee">Ethics Committee</option>
-                  <option value="pharmacovigilance">Pharmacovigilance</option>
-                  <option value="administration">Administration</option>
-                  <option value="regulator_read_only">Regulator - Read Only</option>
+                  <option value="system_administrator">System Administrator</option>
+                  <option value="principal_investigator">Principal Investigator (PI)</option>
+                  <option value="co_investigator_doctor">Co-Investigator / Doctor</option>
+                  <option value="study_coordinator_team_member">Study Coordinator / Clinical Trial Team Member</option>
+                  <option value="pharmacovigilance_safety_officer">Pharmacovigilance / Safety Officer</option>
+                  <option value="data_manager">Data Manager</option>
+                  <option value="viewer_read_only">Viewer / Read-Only User</option>
                 </select>
 
                 <p className="text-xs text-slate-300 mt-2.5 flex items-center gap-2">
@@ -451,12 +482,14 @@ function AdminDashboardContent() {
                     <span className="text-xs text-slate-300">Administrative Role:</span>
                     <span
                       className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
-                        selectedUserType === 'administration'
+                        selectedUserType === 'administration' || selectedUserType === 'system_administrator'
                           ? 'bg-purple-500/20 text-purple-300 border-purple-500/30'
                           : 'bg-blue-500/20 text-blue-300 border-blue-500/30'
                       }`}
                     >
-                      {selectedUserType === 'administration' ? 'ADMIN (Full Access)' : 'USER (Role Restricted)'}
+                      {selectedUserType === 'administration' || selectedUserType === 'system_administrator'
+                        ? 'ADMIN (Full Access)'
+                        : 'USER (Role Restricted)'}
                     </span>
                   </div>
                 </div>

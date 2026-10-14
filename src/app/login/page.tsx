@@ -202,13 +202,13 @@ export default function LoginPage() {
                   className="bg-slate-800 border border-slate-700 text-slate-300 text-[11px] rounded-lg px-2 py-1 focus:outline-none cursor-pointer"
                 >
                   <option value="all">All User Types (7)</option>
-                  <option value="principal_investigator">Principal Investigator</option>
-                  <option value="study_coordinator">Study Coordinator</option>
-                  <option value="monitor">Monitor</option>
-                  <option value="ethics_committee">Ethics Committee</option>
-                  <option value="pharmacovigilance">Pharmacovigilance</option>
-                  <option value="administration">Administration</option>
-                  <option value="regulator_read_only">Regulator - Read Only</option>
+                  <option value="system_administrator">System Administrator</option>
+                  <option value="principal_investigator">Principal Investigator (PI)</option>
+                  <option value="co_investigator_doctor">Co-Investigator / Doctor</option>
+                  <option value="study_coordinator_team_member">Study Coordinator / Team Member</option>
+                  <option value="pharmacovigilance_safety_officer">Pharmacovigilance / Safety Officer</option>
+                  <option value="data_manager">Data Manager</option>
+                  <option value="viewer_read_only">Viewer / Read-Only User</option>
                 </select>
               </div>
             </div>

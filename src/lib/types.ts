@@ -1,12 +1,18 @@
 export type Role = 'admin' | 'user';
 
 export type UserType =
+  | 'system_administrator'
   | 'principal_investigator'
+  | 'co_investigator_doctor'
+  | 'study_coordinator_team_member'
+  | 'pharmacovigilance_safety_officer'
+  | 'data_manager'
+  | 'viewer_read_only'
+  | 'administration'
   | 'study_coordinator'
   | 'monitor'
   | 'ethics_committee'
   | 'pharmacovigilance'
-  | 'administration'
   | 'regulator_read_only';
 
 export type PermissionKey =
@@ -15,6 +21,28 @@ export type PermissionKey =
   | 'create_trials'
   | 'edit_protocols'
   | 'view_all_trials'
+  | 'view_trial_dashboard'
+  | 'manage_trial_configuration'
+  | 'assign_trial_access'
+  | 'assign_centre_access'
+  | 'review_patient_registration'
+  | 'review_consent_status'
+  | 'perform_screening'
+  | 'confirm_eligibility'
+  | 'approve_enrollment'
+  | 'define_visit_definitions'
+  | 'view_patient_visits'
+  | 'manage_patient_demographics'
+  | 'manage_consent_workflow'
+  | 'schedule_screening'
+  | 'schedule_visits'
+  | 'enter_permitted_clinical_data'
+  | 'record_clinical_assessment'
+  | 'record_ayurvedic_assessment'
+  | 'conduct_patient_visits'
+  | 'record_medications'
+  | 'record_treatment_response'
+  | 'identify_adr'
   | 'enroll_patients'
   | 'enter_ecrf'
   | 'approve_ecrf'
@@ -27,9 +55,29 @@ export type PermissionKey =
   | 'manage_safety_reports'
   | 'report_sae'
   | 'safety_triage'
+  | 'review_adr_events'
+  | 'assess_safety_causality'
+  | 'record_safety_actions'
+  | 'generate_safety_reports'
+  | 'view_trial_data'
+  | 'review_patient_records'
+  | 'review_lab_data'
+  | 'review_data_quality'
+  | 'raise_data_queries'
   | 'view_audit_logs'
   | 'export_reports'
-  | 'view_regulatory_tmf';
+  | 'view_regulatory_tmf'
+  | 'read_only_view'
+  | 'manage_trial_regulatory'
+  | 'approve_trial_regulatory'
+  | 'approve_treatment_certificates'
+  | 'view_safety_reports'
+  | 'create_safety_reports'
+  | 'edit_safety_reports'
+  | 'review_safety_reports'
+  | 'assess_safety_reports'
+  | 'manage_safety_followups'
+  | 'close_safety_reports';
 
 export interface UserTypeConfig {
   id: UserType;
@@ -53,6 +101,8 @@ export interface User {
   permissions: PermissionKey[];
   department?: string;
   phone?: string;
+  assignedTrialIds?: string[];
+  assignedCentreIds?: string[];
   status: 'active' | 'inactive';
   createdAt: string;
 }
@@ -71,10 +121,11 @@ export interface CreateUserData {
   permissions?: PermissionKey[];
   department?: string;
   phone?: string;
+  assignedTrialIds?: string[];
+  assignedCentreIds?: string[];
   status?: 'active' | 'inactive';
 }
 
-<<<<<<< Updated upstream
 export type CentreType =
   | 'Government Hospital'
   | 'Private Medical Center'
@@ -132,8 +183,298 @@ export interface TrialProposal {
   secondaryOutcome: string;
   selectedCentreIds: string[];
   proposalStatus: ProposalStatus;
+  regulatory?: TrialRegulatoryRecord;
+  safetyReporting?: TrialSafetyReportingConfig;
   proposedBy?: string;
   createdAt: string;
+}
+
+export interface TrialSafetyReportingConfig {
+  reportingDeadlineHours?: number;
+  reportingAuthority?: string;
+  reportingCriteria?: string;
+  configuredBy: string;
+  configuredAt: string;
+}
+
+export type SafetyReportStatus =
+  | 'Draft'
+  | 'Submitted'
+  | 'Under Review'
+  | 'Follow-up Required'
+  | 'Escalated'
+  | 'Reporting Pending'
+  | 'Reported'
+  | 'Closed';
+
+export type SafetyKnowledgeValue = string;
+
+export interface SafetyDocument {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  dataUrl: string;
+  uploadedAt: string;
+  uploadedBy: string;
+}
+
+export interface SafetyFollowUp {
+  id: string;
+  followUpDate: string;
+  newSymptomsFindings: string;
+  newLaboratoryResults: string;
+  updatedOutcome: string;
+  additionalActionTaken: string;
+  notes: string;
+  recordedBy: string;
+  documents: SafetyDocument[];
+  recordedAt: string;
+}
+
+export interface SafetyAuditEntry {
+  id: string;
+  reportId: string;
+  action: string;
+  changedAt: string;
+  changedBy: string;
+  userRole: string;
+  previousValues: string;
+  newValues: string;
+}
+
+export interface SafetyNotification {
+  id: string;
+  reportId: string;
+  recipientId: string;
+  recipientName: string;
+  role: string;
+  createdAt: string;
+  deliveryStatus: 'In-app notification recorded' | 'Delivery unavailable';
+}
+
+export interface SafetyEscalation {
+  id: string;
+  reportId: string;
+  reason: string;
+  escalatedAt: string;
+  escalatedBy: string;
+  recipients: string[];
+  reportingDeadline?: string;
+}
+
+export interface SafetyDataQuery {
+  id: string;
+  raisedAt: string;
+  raisedBy: string;
+  raisedByRole: string;
+  query: string;
+  status: 'Open' | 'Responded' | 'Resolved';
+  response: string;
+  resolvedAt: string;
+}
+
+export interface SafetyReport {
+  id: string;
+  reportId: string;
+  patientId: string;
+  trialId: string;
+  centre: string;
+  enrollmentNumber: string;
+  visitId: string;
+  visitNumber: string;
+  reportedBy: string;
+  reportedByUserId: string;
+  reportedByRole: string;
+  reportedAt: string;
+  eventTerm: string;
+  description: string;
+  onsetDateTime: string;
+  endDateTime: string;
+  symptomsFindings: string;
+  eventTreatment: string;
+  relevantLaboratoryFindings: string;
+  medicalHistory: string;
+  concomitantMedicines: string;
+  eventStatus: 'Ongoing' | 'Resolved' | 'Unknown';
+  suspectedMedicineId: string;
+  suspectedMedicineName: string;
+  formulation: string;
+  batchNumber: string;
+  dose: string;
+  frequency: string;
+  route: string;
+  treatmentStartDate: string;
+  lastDoseDate: string;
+  indication: string;
+  otherSuspectedMedicines: string;
+  medicineActionTaken: string;
+  severity: 'Mild' | 'Moderate' | 'Severe' | 'Unknown';
+  seriousness: 'Serious' | 'Non-serious' | 'Unknown';
+  seriousnessCriteria: string[];
+  seriousnessOther: string;
+  causality: string;
+  causalityMethod: string;
+  expectedness: 'Expected' | 'Unexpected' | 'Unknown' | 'Not Applicable';
+  clinicalAssessment: string;
+  actionTaken: string;
+  patientOutcome: string;
+  followUpRequired: boolean;
+  assessedBy: string;
+  assessedByUserId: string;
+  assessmentDate: string;
+  reviewerRemarks: string;
+  reviewStatus: SafetyReportStatus;
+  initialMedicalReview: string;
+  piDecision: string;
+  reportingAssessment: string;
+  reportingStatus: 'Not Assessed' | 'Not Reportable' | 'Reporting Pending' | 'Reported';
+  reportingAuthority: string;
+  reportingCriteria: string;
+  reportingDeadline: string;
+  reportedAtAuthority: string;
+  followUps: SafetyFollowUp[];
+  documents: SafetyDocument[];
+  notifications: SafetyNotification[];
+  escalationHistory: SafetyEscalation[];
+  dataQueries: SafetyDataQuery[];
+  auditHistory: SafetyAuditEntry[];
+  closureReason: string;
+  closedAt: string;
+  closedBy: string;
+  reopenedReason: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type RegulatoryApprovalStatus =
+  | 'Not Started'
+  | 'Submitted'
+  | 'Under Review'
+  | 'Approved'
+  | 'Returned for Correction'
+  | 'Rejected';
+
+export type CTRIStatus =
+  | 'Not Submitted'
+  | 'Submitted'
+  | 'Under Review'
+  | 'Registered'
+  | 'Returned for Correction';
+
+export interface RegulatoryDocument {
+  fileName: string;
+  uploadedAt: string;
+  uploadedBy: string;
+  dataUrl?: string;
+}
+
+export interface TrialRegulatoryRecord {
+  protocol: {
+    number: string;
+    version: string;
+    title: string;
+    versionDate: string;
+    principalInvestigator: string;
+    approvalStatus: RegulatoryApprovalStatus;
+    approvalDocument?: RegulatoryDocument;
+  };
+  ethics: {
+    name: string;
+    registrationDetails: string;
+    referenceNumber: string;
+    submissionDate: string;
+    approvalStatus: RegulatoryApprovalStatus;
+    approvalDate: string;
+    validUntil: string;
+    approvedProtocolVersion: string;
+    approvedConsentVersion: string;
+    approvalDocument?: RegulatoryDocument;
+    remarks: string;
+  };
+  ctri: {
+    referenceNumber: string;
+    registrationNumber: string;
+    submissionDate: string;
+    registrationDate: string;
+    status: CTRIStatus;
+    registrationRecord?: RegulatoryDocument;
+  };
+  cdsco: {
+    requirement: 'Yes' | 'No' | 'To Be Determined';
+    applicabilityReason: string;
+    authority: string;
+    applicationNumber: string;
+    submissionDate: string;
+    approvalDate: string;
+    status: RegulatoryApprovalStatus;
+    approvalDocument?: RegulatoryDocument;
+    reviewer: string;
+    reviewDate: string;
+  };
+  siteReadiness: {
+    activationStatus: 'Not Ready' | 'In Progress' | 'Ready';
+    principalInvestigator: string;
+    investigators: string[];
+    qualificationsVerified: boolean;
+    approvedProtocolVersion: string;
+    approvedConsentVersion: string;
+    medicineAvailable: boolean;
+    safetyReportingReady: boolean;
+    readinessChecklist: string;
+    reviewerRemarks: string;
+  };
+  validationRules: {
+    requireProtocolApproval: boolean;
+    requireIECapproval: boolean;
+    requireCTRIRegistration: boolean;
+    requireCDSCOAssessment: boolean;
+    requireSiteReadiness: boolean;
+    requireProspectiveCTRIRegistration: boolean;
+    requireCompletedTreatmentForCertificate: boolean;
+    minimumCompletedVisitsForCertificate: number;
+    requireRecordedTreatmentForCertificate: boolean;
+  };
+  auditTrail: RegulatoryAuditEntry[];
+}
+
+export interface RegulatoryAuditEntry {
+  id: string;
+  changedAt: string;
+  changedBy: string;
+  action: string;
+  before: string;
+  after: string;
+}
+
+export interface TreatmentCertificate {
+  id: string;
+  certificateNumber: string;
+  trialId: string;
+  patientId: string;
+  patientCode: string;
+  patientName: string;
+  trialTitle: string;
+  certificateType: 'Trial Participation' | 'Treatment Completion';
+  treatmentStartDate: string;
+  treatmentEndDate: string;
+  completedVisits: number;
+  actualTreatmentStatus: EnrollmentStatus;
+  issueDate: string;
+  authorizedSignatory: string;
+  authorizedSignatoryTitle: string;
+  issuedBy: string;
+  issuedAt: string;
+}
+
+export interface CertificateAuditEntry {
+  id: string;
+  certificateId: string;
+  trialId: string;
+  patientId: string;
+  changedAt: string;
+  changedBy: string;
+  action: 'Issued';
+  certificateNumber: string;
 }
 
 export interface CreateTrialProposalData {
@@ -197,6 +538,205 @@ export interface CreateTrialTeamData {
   status?: 'Active' | 'Inactive';
 }
 
+export type ConsentStatus = 'Not Obtained' | 'Obtained' | 'Refused' | 'Withdrawn';
+export type ScreeningEligibilityStatus = 'Pending' | 'Eligible' | 'Not Eligible';
+export type EnrollmentStatus = 'Active' | 'Completed' | 'Withdrawn' | 'Discontinued';
+export type PatientLifecycleStatus =
+  | 'Registered'
+  | 'Consent Pending'
+  | 'Consent Obtained'
+  | 'Screening Pending'
+  | 'Eligible'
+  | 'Not Eligible'
+  | 'Enrolled'
+  | 'Active Treatment'
+  | 'Completed'
+  | 'Withdrawn'
+  | 'Discontinued';
+
+export interface DemoConsentDocument {
+  id: string;
+  fileName: string;
+  fileType: 'JPG' | 'JPEG' | 'PNG' | 'PDF';
+  mimeType: string;
+  uploadedAt: string;
+  uploadedBy: string;
+  previewDataUrl?: string;
+}
+
+export interface PatientConsent {
+  id: string;
+  patientId: string;
+  trialId: string;
+  status: ConsentStatus;
+  consentDate?: string;
+  consentTime?: string;
+  consentVersion?: string;
+  document?: DemoConsentDocument | null;
+  obtainedBy?: string;
+  witnessName?: string;
+  remarks?: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: string;
+  updatedBy?: string;
+}
+
+export interface PatientScreening {
+  id: string;
+  patientId: string;
+  trialId: string;
+  screeningDate?: string;
+  inclusionCriteria?: string;
+  exclusionCriteria?: string;
+  eligibilityStatus: ScreeningEligibilityStatus;
+  screeningRemarks?: string;
+  screenedBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PatientEnrollment {
+  id: string;
+  patientId: string;
+  trialId: string;
+  enrollmentNumber?: string;
+  enrollmentDate?: string;
+  centre?: string;
+  treatmentGroup?: string;
+  randomizationNumber?: string;
+  enrolledBy?: string;
+  enrollmentStatus: EnrollmentStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PatientVisit {
+  id: string;
+  patientId: string;
+  trialId: string;
+  visitNumber?: string;
+  visitDate?: string;
+  visitType?: string;
+  status?: 'Scheduled' | 'Completed' | 'Missed';
+  doctorInvestigator?: string;
+  visitNotes?: string;
+  medicines?: VisitMedicine[];
+  problems?: VisitProblem[];
+  observations?: VisitObservation[];
+  adverseEvents?: VisitAdverseEvent[];
+  labResults?: VisitLabResult[];
+  treatmentResponse?: 'Improvement' | 'No Change' | 'Worsened' | '';
+  treatmentResponseNotes?: string;
+  nextVisitDate?: string;
+  followUpInstructions?: string;
+  additionalNotes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  updatedBy?: string;
+}
+
+export interface VisitMedicine {
+  id: string;
+  medicineName: string;
+  formulation?: string;
+  batchNumber?: string;
+  dose?: string;
+  unit?: string;
+  frequency?: string;
+  route?: string;
+  quantityProvided?: string;
+  dateProvided?: string;
+  startDate?: string;
+  endDate?: string;
+  purpose?: string;
+}
+
+export interface VisitProblem {
+  id: string;
+  problem?: string;
+  symptoms?: string;
+  severity?: string;
+  onsetDate?: string;
+  duration?: string;
+  currentStatus?: string;
+  doctorObservation?: string;
+}
+
+export interface VisitObservation {
+  id: string;
+  temperature?: string;
+  pulse?: string;
+  bloodPressure?: string;
+  weight?: string;
+  otherObservations?: string;
+  ayurvedicObservations?: string;
+}
+
+export interface VisitAdverseEvent {
+  id: string;
+  sideEffect?: string;
+  date?: string;
+  severity?: string;
+  seriousness?: 'Serious' | 'Non-serious' | '';
+  suspectedMedicine?: string;
+  actionTaken?: string;
+  treatmentGiven?: string;
+  outcome?: string;
+  additionalNotes?: string;
+}
+
+export interface VisitLabResult {
+  id: string;
+  testName?: string;
+  testDate?: string;
+  result?: string;
+  unit?: string;
+  referenceRange?: string;
+  interpretation?: 'Normal' | 'Abnormal' | '';
+  remarks?: string;
+}
+
+export interface Patient {
+  id: string;
+  trialId: string;
+  patientCode: string;
+  fullName: string;
+  dateOfBirth?: string;
+  age?: number;
+  gender?: string;
+  contactNumber?: string;
+  address?: string;
+  emergencyContact?: string;
+  bloodGroup?: string;
+  registrationDate?: string;
+  centre?: string;
+  registeredBy?: string;
+  remarks?: string;
+  consent?: PatientConsent;
+  screening?: PatientScreening;
+  enrollment?: PatientEnrollment;
+  visits?: PatientVisit[];
+  status: PatientLifecycleStatus;
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: string;
+  updatedBy?: string;
+}
+
+export interface TrialPatientSummary {
+  totalPatients: number;
+  registeredPatients: number;
+  consentPending: number;
+  consentObtained: number;
+  consentNotObtained: number;
+  screenedPatients: number;
+  eligiblePatients: number;
+  enrolledPatients: number;
+  activePatients: number;
+  withdrawnPatients: number;
+  completedPatients: number;
+}
 
 
 
@@ -206,7 +746,6 @@ export interface CreateTrialTeamData {
 
 
 
-=======
 export type DrugStatus = 'Active' | 'Inactive' | 'Under Review' | 'Quarantine' | 'Discontinued' | 'Recalled';
 
 export interface DrugComponent {
@@ -274,5 +813,3 @@ export interface CreateDrugData {
   totalDosage: string;
   storageConditions?: string;
 }
-
->>>>>>> Stashed changes

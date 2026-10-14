@@ -11,10 +11,12 @@ export const INITIAL_SEED_USERS: User[] = [
     password: 'admin@123',
     fullName: 'CTMS System Admin',
     role: 'admin',
-    userType: 'administration',
-    permissions: getDefaultPermissions('administration'),
+    userType: 'system_administrator',
+    permissions: getDefaultPermissions('system_administrator'),
     department: 'Clinical Operations & System Administration',
     phone: '+1 (555) 019-2834',
+    assignedTrialIds: ['prop_sample_001'],
+    assignedCentreIds: ['ctr_seed_001'],
     status: 'active',
     createdAt: new Date().toISOString(),
   },
@@ -28,6 +30,8 @@ export const INITIAL_SEED_USERS: User[] = [
     permissions: getDefaultPermissions('principal_investigator'),
     department: 'Oncology Research Department',
     phone: '+1 (555) 304-9182',
+    assignedTrialIds: ['prop_sample_001'],
+    assignedCentreIds: ['ctr_seed_001', 'ctr_seed_002'],
     status: 'active',
     createdAt: new Date().toISOString(),
   },
@@ -37,10 +41,12 @@ export const INITIAL_SEED_USERS: User[] = [
     password: 'coord@123',
     fullName: 'Michael Vance (Study Coordinator)',
     role: 'user',
-    userType: 'study_coordinator',
-    permissions: getDefaultPermissions('study_coordinator'),
+    userType: 'study_coordinator_team_member',
+    permissions: getDefaultPermissions('study_coordinator_team_member'),
     department: 'Clinical Trial Site 101',
     phone: '+1 (555) 829-1034',
+    assignedTrialIds: ['prop_sample_001'],
+    assignedCentreIds: ['ctr_seed_001'],
     status: 'active',
     createdAt: new Date().toISOString(),
   },
@@ -48,12 +54,14 @@ export const INITIAL_SEED_USERS: User[] = [
     id: 'usr_monitor_004',
     email: 'monitor@ctms.com',
     password: 'monitor@123',
-    fullName: 'Elena Rostova (CRA Monitor)',
+    fullName: 'Elena Rostova (Co-Investigator / Doctor)',
     role: 'user',
-    userType: 'monitor',
-    permissions: getDefaultPermissions('monitor'),
+    userType: 'co_investigator_doctor',
+    permissions: getDefaultPermissions('co_investigator_doctor'),
     department: 'Clinical Quality Assurance & Monitoring',
     phone: '+1 (555) 492-0193',
+    assignedTrialIds: ['prop_sample_001'],
+    assignedCentreIds: ['ctr_seed_002'],
     status: 'active',
     createdAt: new Date().toISOString(),
   },
@@ -61,12 +69,14 @@ export const INITIAL_SEED_USERS: User[] = [
     id: 'usr_ethics_005',
     email: 'ethics@ctms.com',
     password: 'ethics@123',
-    fullName: 'Prof. David Thorne (IRB Ethics Chair)',
+    fullName: 'David Thorne (Data Manager)',
     role: 'user',
-    userType: 'ethics_committee',
-    permissions: getDefaultPermissions('ethics_committee'),
-    department: 'Institutional Review Board (IRB / IEC)',
+    userType: 'data_manager',
+    permissions: getDefaultPermissions('data_manager'),
+    department: 'Data Management & Clinical Operations',
     phone: '+1 (555) 901-2831',
+    assignedTrialIds: ['prop_sample_001'],
+    assignedCentreIds: ['ctr_seed_001', 'ctr_seed_003'],
     status: 'active',
     createdAt: new Date().toISOString(),
   },
@@ -76,10 +86,12 @@ export const INITIAL_SEED_USERS: User[] = [
     password: 'pv@123',
     fullName: 'Dr. Anita Patel (Pharmacovigilance)',
     role: 'user',
-    userType: 'pharmacovigilance',
-    permissions: getDefaultPermissions('pharmacovigilance'),
+    userType: 'pharmacovigilance_safety_officer',
+    permissions: getDefaultPermissions('pharmacovigilance_safety_officer'),
     department: 'Drug Safety & Pharmacovigilance Unit',
     phone: '+1 (555) 772-9102',
+    assignedTrialIds: ['prop_sample_001'],
+    assignedCentreIds: ['ctr_seed_001'],
     status: 'active',
     createdAt: new Date().toISOString(),
   },
@@ -87,12 +99,14 @@ export const INITIAL_SEED_USERS: User[] = [
     id: 'usr_regulator_007',
     email: 'regulator@ctms.com',
     password: 'regulator@123',
-    fullName: 'Inspector James Sterling (Regulator)',
+    fullName: 'Inspector James Sterling (Viewer)',
     role: 'user',
-    userType: 'regulator_read_only',
-    permissions: getDefaultPermissions('regulator_read_only'),
+    userType: 'viewer_read_only',
+    permissions: getDefaultPermissions('viewer_read_only'),
     department: 'Health Authority Regulatory Inspection',
     phone: '+1 (555) 603-9184',
+    assignedTrialIds: ['prop_sample_001'],
+    assignedCentreIds: ['ctr_seed_001'],
     status: 'active',
     createdAt: new Date().toISOString(),
   },
@@ -121,12 +135,14 @@ export const getCachedUsers = (): User[] => {
     }
     // Ensure all seed user types exist and have userType & permissions
     const updated = parsed.map((u: any) => {
-      const userType = u.userType || (u.role === 'admin' ? 'administration' : 'study_coordinator');
+      const userType = u.userType || (u.role === 'admin' ? 'system_administrator' : 'study_coordinator_team_member');
       const permissions = u.permissions && u.permissions.length > 0 ? u.permissions : getDefaultPermissions(userType);
       return {
         ...u,
         userType,
         permissions,
+        assignedTrialIds: Array.isArray(u.assignedTrialIds) ? u.assignedTrialIds : [],
+        assignedCentreIds: Array.isArray(u.assignedCentreIds) ? u.assignedCentreIds : [],
       };
     });
 
@@ -160,9 +176,9 @@ export const addUserToCache = (data: CreateUserData): User => {
     throw new Error(`User with email "${data.email}" already exists.`);
   }
 
-  const selectedUserType = data.userType || 'study_coordinator';
+  const selectedUserType = data.userType || 'study_coordinator_team_member';
   const typeConfig = getUserTypeConfig(selectedUserType);
-  const computedRole = selectedUserType === 'administration' ? 'admin' : (data.role || 'user');
+  const computedRole = selectedUserType === 'system_administrator' || selectedUserType === 'administration' ? 'admin' : (data.role || 'user');
   const computedPermissions = data.permissions && data.permissions.length > 0
     ? data.permissions
     : getDefaultPermissions(selectedUserType);
@@ -177,6 +193,8 @@ export const addUserToCache = (data: CreateUserData): User => {
     permissions: computedPermissions,
     department: data.department?.trim() || typeConfig.label,
     phone: data.phone?.trim() || '',
+    assignedTrialIds: Array.isArray(data.assignedTrialIds) ? data.assignedTrialIds : [],
+    assignedCentreIds: Array.isArray(data.assignedCentreIds) ? data.assignedCentreIds : [],
     status: data.status || 'active',
     createdAt: new Date().toISOString(),
   };
