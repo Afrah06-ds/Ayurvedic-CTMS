@@ -6,15 +6,18 @@ import { getCachedDrugs } from '@/lib/drugStorage';
 
 interface DrugContextValue {
   drugs: Drug[];
+  isLoading: boolean;
 }
 
 const DrugContext = createContext<DrugContextValue | undefined>(undefined);
 
 export function DrugProvider({ children }: { children: React.ReactNode }) {
   const [drugs, setDrugs] = useState<Drug[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setDrugs(getCachedDrugs());
+    setIsLoading(false);
 
     const handleStorage = (event: StorageEvent) => {
       if (event.key === 'ctms_cached_drugs_v1') setDrugs(getCachedDrugs());
@@ -24,7 +27,7 @@ export function DrugProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
-  return <DrugContext.Provider value={{ drugs }}>{children}</DrugContext.Provider>;
+  return <DrugContext.Provider value={{ drugs, isLoading }}>{children}</DrugContext.Provider>;
 }
 
 export function useDrugs() {

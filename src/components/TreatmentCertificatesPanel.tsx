@@ -180,7 +180,15 @@ export function TreatmentCertificatesPanel({ trial, patients, user }: TreatmentC
         </table>
       </div>
 
-      <p className="rounded-lg border border-blue-800/50 bg-blue-950/20 p-3 text-sm text-blue-100">A participation/completion certificate verifies trial participation and recorded treatment status only. It is not a medical cure certificate.</p>
+      {counts.eligible > counts.issued && (
+        <div className="flex items-center justify-between rounded-xl border border-amber-500/30 bg-amber-950/20 px-4 py-2.5 text-xs text-amber-200">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-amber-300">Pending Certificate Issuance:</span>
+            <span>{counts.eligible - counts.issued} completed participant{counts.eligible - counts.issued > 1 ? 's' : ''} eligible for Treatment Completion Certificates.</span>
+          </div>
+          <span className="text-[11px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded">Action Required</span>
+        </div>
+      )}
 
       {canViewAudit && (
         <details className="rounded-lg border border-slate-800 bg-slate-950 p-3">

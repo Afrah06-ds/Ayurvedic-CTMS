@@ -12,14 +12,9 @@ import {
   ShieldCheck,
   AlertCircle,
   Loader2,
-  Sparkles,
   ArrowRight,
-  KeyRound,
-  Filter,
+  ShieldAlert,
 } from 'lucide-react';
-import { getCachedUsers } from '@/lib/storage';
-import { User, UserType } from '@/lib/types';
-import { getUserTypeConfig } from '@/lib/permissions';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -30,8 +25,10 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [cachedUsersList, setCachedUsersList] = useState<User[]>([]);
-  const [selectedTypeFilter, setSelectedTypeFilter] = useState<'all' | UserType>('all');
+
+  // Hardened browser autofill prevention: readOnly until focused by user
+  const [isEmailReadOnly, setIsEmailReadOnly] = useState(true);
+  const [isPasswordReadOnly, setIsPasswordReadOnly] = useState(true);
 
   // If already logged in, redirect
   useEffect(() => {
@@ -40,22 +37,12 @@ export default function LoginPage() {
     }
   }, [user, authLoading, router]);
 
-  // Load existing users to show quick-fill buttons
-  useEffect(() => {
-    try {
-      const list = getCachedUsers();
-      setCachedUsersList(list);
-    } catch {
-      // ignore
-    }
-  }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     if (!email.trim() || !password) {
-      setError('Please enter both email and password.');
+      setError('Please enter both your authorized email and password.');
       return;
     }
 
@@ -70,12 +57,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickFill = (uEmail: string, uPass: string) => {
-    setEmail(uEmail);
-    setPassword(uPass);
-    setError(null);
-  };
-
   if (authLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -83,10 +64,6 @@ export default function LoginPage() {
       </div>
     );
   }
-
-  const filteredQuickUsers = cachedUsersList.filter(
-    (u) => selectedTypeFilter === 'all' || u.userType === selectedTypeFilter
-  );
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center relative overflow-hidden px-4 py-12">
@@ -104,7 +81,7 @@ export default function LoginPage() {
             CTMS Portal Login
           </h1>
           <p className="text-sm text-slate-400 mt-2">
-            Clinical Trial Management & User Type Security Access
+            Ayurvedic Clinical Trial Management System — Authorized Access Only
           </p>
         </div>
 
@@ -117,11 +94,34 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-5"
+            autoComplete="off"
+            noValidate
+          >
+            {/* Decoy fields to intercept aggressive browser autofill heuristics */}
+            <input
+              type="text"
+              name="fake_username_prevent_autofill"
+              style={{ display: 'none', position: 'absolute', opacity: 0 }}
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+            />
+            <input
+              type="password"
+              name="fake_password_prevent_autofill"
+              style={{ display: 'none', position: 'absolute', opacity: 0 }}
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+            />
+
             {/* Email Field */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
-                Email Address
+                Authorized Email Address
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
@@ -129,10 +129,23 @@ export default function LoginPage() {
                 </div>
                 <input
                   type="email"
+                  name="ctms_secure_identity"
+                  id="ctms_secure_identity"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@ctms.com"
+                  onFocus={() => setIsEmailReadOnly(false)}
+                  onClick={() => setIsEmailReadOnly(false)}
+                  readOnly={isEmailReadOnly}
+                  placeholder="user@ctms.com"
                   required
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                  data-bwignore="true"
+                  data-form-type="other"
                   className="w-full pl-10 pr-4 py-3 bg-slate-800/80 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
                 />
               </div>
@@ -141,7 +154,7 @@ export default function LoginPage() {
             {/* Password Field */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
-                Password
+                Account Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
@@ -149,10 +162,23 @@ export default function LoginPage() {
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  name="ctms_secure_credential"
+                  id="ctms_secure_credential"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  onFocus={() => setIsPasswordReadOnly(false)}
+                  onClick={() => setIsPasswordReadOnly(false)}
+                  readOnly={isPasswordReadOnly}
+                  placeholder="••••••••••••"
                   required
+                  autoComplete="new-password"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                  data-bwignore="true"
+                  data-form-type="other"
                   className="w-full pl-10 pr-11 py-3 bg-slate-800/80 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-mono"
                 />
                 <button
@@ -174,83 +200,23 @@ export default function LoginPage() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Authenticating...</span>
+                  <span>Verifying Credentials...</span>
                 </>
               ) : (
                 <>
-                  <span>Sign In to CTMS</span>
+                  <span>Sign In Securely</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </button>
           </form>
-
-          {/* Quick Demo Fill Section with User Type Selector */}
-          <div className="mt-8 pt-6 border-t border-slate-800 space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                Quick Test Accounts by User Type
-              </span>
-
-              {/* User Type Filter Dropdown */}
-              <div className="flex items-center gap-1.5">
-                <Filter className="w-3 h-3 text-slate-500" />
-                <select
-                  value={selectedTypeFilter}
-                  onChange={(e) => setSelectedTypeFilter(e.target.value as any)}
-                  className="bg-slate-800 border border-slate-700 text-slate-300 text-[11px] rounded-lg px-2 py-1 focus:outline-none cursor-pointer"
-                >
-                  <option value="all">All User Types (7)</option>
-                  <option value="system_administrator">System Administrator</option>
-                  <option value="principal_investigator">Principal Investigator (PI)</option>
-                  <option value="co_investigator_doctor">Co-Investigator / Doctor</option>
-                  <option value="study_coordinator_team_member">Study Coordinator / Team Member</option>
-                  <option value="pharmacovigilance_safety_officer">Pharmacovigilance / Safety Officer</option>
-                  <option value="data_manager">Data Manager</option>
-                  <option value="viewer_read_only">Viewer / Read-Only User</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-              {filteredQuickUsers.map((u) => {
-                const config = getUserTypeConfig(u.userType);
-                return (
-                  <button
-                    key={u.id}
-                    type="button"
-                    onClick={() => handleQuickFill(u.email, u.password || '')}
-                    className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:bg-slate-800 hover:border-slate-600 text-left transition-all group"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-slate-100">{u.fullName}</span>
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded border ${config.badgeBg} ${config.badgeText} ${config.badgeBorder}`}
-                        >
-                          {config.label}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-slate-400 font-mono mt-0.5">
-                        {u.email} / {u.password}
-                      </p>
-                    </div>
-                    <span className="text-xs text-blue-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                      Auto Fill
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         </div>
 
         {/* Footer Note */}
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-1">
           <p className="text-xs text-slate-500 flex items-center justify-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-emerald-500/80" />
-            CTMS Role-Based Access Control Active
+            AIIA Ayurvedic Clinical Trial Management System &bull; Authorized Access
           </p>
         </div>
       </div>

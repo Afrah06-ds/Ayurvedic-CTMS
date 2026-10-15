@@ -41,8 +41,8 @@ export default function DrugDetailPage({
 }
 
 function DrugDetailContent({ drugId }: { drugId: string }) {
-  const { getDrug, isLoading } = useDrugs();
-  const drug = getDrug(drugId);
+  const { drugs, isLoading } = useDrugs();
+  const drug = drugs.find((candidate) => candidate.id === drugId);
 
   if (isLoading) {
     return (

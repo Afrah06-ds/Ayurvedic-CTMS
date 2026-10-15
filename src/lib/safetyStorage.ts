@@ -9,6 +9,7 @@ import {
   SafetyDataQuery,
   SafetyReport,
   SafetyReportStatus,
+  SafetyConsentDetails,
   TrialProposal,
   User,
 } from './types';
@@ -72,14 +73,227 @@ export interface SafetyReportDraft {
   followUpRequired: boolean;
   initialMedicalReview: string;
   documents: SafetyDocument[];
+  consentDetails?: SafetyConsentDetails;
 }
 
-const emptyStore = (): SafetyStore => ({ reports: [] });
+export const INITIAL_SEED_SAFETY_REPORTS: SafetyReport[] = [
+  {
+    id: 'srep_seed_001',
+    reportId: 'SR-CT001-2026-001',
+    patientId: 'pat_001',
+    trialId: 'CT-001',
+    centre: 'AIIA Main Hospital, New Delhi',
+    enrollmentNumber: 'ENR-2026-001',
+    visitId: 'vis_001',
+    visitNumber: 'Visit 2',
+    reportedBy: 'Prof. Dr. Sarah Jenkins (Lead PI)',
+    reportedByUserId: 'usr_pi_002',
+    reportedByRole: 'principal_investigator',
+    reportedAt: new Date(Date.now() - 3600000 * 48).toISOString(),
+    eventTerm: 'Epigastric Distress and Nausea',
+    description: 'Participant reported moderate epigastric burning sensation and recurring nausea 48 hours following commencement of Nimba Tablet.',
+    onsetDateTime: new Date(Date.now() - 3600000 * 72).toISOString().slice(0, 16),
+    endDateTime: new Date(Date.now() - 3600000 * 24).toISOString().slice(0, 16),
+    symptomsFindings: 'Epigastric tenderness on palpation; pulse 76/min, BP 122/82 mmHg; tongue mildly coated (Ama lakshana).',
+    eventTreatment: 'Oral antacid and carminative Ayurvedic kwatha administered; investigational drug temporarily paused.',
+    relevantLaboratoryFindings: 'Serum creatinine: 0.88 mg/dL; LFT: ALT 26 IU/L, AST 24 IU/L; Hemoglobin: 13.4 g/dL.',
+    medicalHistory: 'Mild non-ulcer dyspepsia 1 year prior, fully resolved without medication.',
+    concomitantMedicines: 'None recorded.',
+    eventStatus: 'Resolved',
+    suspectedMedicineId: 'DRUG001',
+    suspectedMedicineName: 'Nimba Tablet (Azadirachta indica)',
+    formulation: '500 mg Ayurvedic Tablet',
+    batchNumber: 'NMB-2026-01',
+    dose: '500 mg',
+    frequency: 'Twice daily after meals',
+    route: 'Oral',
+    treatmentStartDate: new Date(Date.now() - 3600000 * 120).toISOString().slice(0, 10),
+    lastDoseDate: new Date(Date.now() - 3600000 * 48).toISOString().slice(0, 10),
+    indication: 'Madhumeha / Type 2 Diabetes Mellitus',
+    otherSuspectedMedicines: 'None',
+    medicineActionTaken: 'Dose temporarily suspended then resumed at half strength',
+    severity: 'Moderate',
+    seriousness: 'Serious',
+    seriousnessCriteria: ['Hospitalization or prolonged hospitalization'],
+    seriousnessOther: '',
+    causality: 'Probable/Likely',
+    causalityMethod: 'WHO-UMC / Naranjo Causality Assessment Algorithm',
+    expectedness: 'Expected',
+    clinicalAssessment: 'Positive de-challenge observed within 24 hours of suspension. Mild gastrointestinal irritation is documented in Classical Ayurvedic Pharmacopoeia for Tikta rasa predominant preparations.',
+    actionTaken: 'Monitored at clinical research unit; patient discharged in fully recovered state.',
+    patientOutcome: 'Recovered',
+    followUpRequired: false,
+    assessedBy: 'Dr. Anita Patel (National PV Lead)',
+    assessedByUserId: 'usr_pv_006',
+    assessmentDate: new Date(Date.now() - 3600000 * 36).toISOString().slice(0, 10),
+    reviewerRemarks: 'Comprehensive clinical evaluation complete. Event meets criteria for expedited reporting to CDSCO / PvPI.',
+    reviewStatus: 'Under Review',
+    initialMedicalReview: 'Causality evaluated by site investigator and pharmacovigilance officer; drug association is probable.',
+    piDecision: 'Approved for resumption with dietary advice (Anupana with warm milk) to mitigate Tikta rasa irritation.',
+    reportingAssessment: 'Schedule Y / Indian GCP expedited regulatory reporting applicable within 14 calendar days.',
+    reportingStatus: 'Reporting Pending',
+    reportingAuthority: 'CDSCO / Pharmacovigilance Program of India (PvPI)',
+    reportingCriteria: 'Serious Adverse Event requiring hospitalization during active clinical trial phase',
+    reportingDeadline: new Date(Date.now() + 3600000 * 48).toISOString().slice(0, 10),
+    reportedAtAuthority: '',
+    followUps: [],
+    documents: [],
+    consentDetails: {
+      status: 'Obtained',
+      consentDate: '2026-01-10',
+      consentVersion: 'v2.1',
+      obtainedBy: 'Prof. Dr. Sarah Jenkins (Lead PI)',
+      witnessName: 'Ramesh Sharma',
+      larConfirmed: false,
+      remarks: 'Signed informed consent on file; verified against ethics approval version v2.1.',
+      document: {
+        id: 'doc_seed_001',
+        fileName: 'Informed_Consent_Form_Signed_P001.pdf',
+        fileType: 'PDF',
+        mimeType: 'application/pdf',
+        uploadedAt: '2026-01-10T09:30:00.000Z',
+        uploadedBy: 'Prof. Dr. Sarah Jenkins',
+      },
+      analysisResult: {
+        detectedStatus: 'Obtained',
+        confidenceScore: 0.99,
+        hasSignature: true,
+        hasWitnessSignature: true,
+        hasDate: true,
+        documentClassification: 'Signed Informed Consent PDF',
+        analysisSummary: 'Automated verification validated document signatures, participant affirmation, and protocol alignment.',
+        extractedKeywords: ['Consent Verified', 'Ethics Version v2.1', 'Participant Signature Detected'],
+        analyzedAt: '2026-01-10T09:31:00.000Z',
+      },
+    },
+    notifications: [
+      {
+        id: 'notif_001',
+        reportId: 'srep_seed_001',
+        recipientId: 'usr_super_admin_001',
+        recipientName: 'Dr. Rajesh Sharma (Super Admin)',
+        role: 'super_admin',
+        createdAt: new Date(Date.now() - 3600000 * 40).toISOString(),
+        deliveryStatus: 'In-app notification recorded',
+      },
+    ],
+    escalationHistory: [
+      {
+        id: 'esc_001',
+        reportId: 'srep_seed_001',
+        reason: 'Hospitalization reported - urgent review initiated',
+        escalatedAt: new Date(Date.now() - 3600000 * 44).toISOString(),
+        escalatedBy: 'Michael Vance (Study Coordinator)',
+        recipients: ['usr_pi_002', 'usr_pv_006', 'usr_super_admin_001'],
+        reportingDeadline: new Date(Date.now() + 3600000 * 48).toISOString().slice(0, 10),
+      },
+    ],
+    dataQueries: [],
+    auditHistory: [
+      {
+        id: 'aud_seed_001',
+        reportId: 'srep_seed_001',
+        action: 'Report Submitted',
+        changedAt: new Date(Date.now() - 3600000 * 48).toISOString(),
+        changedBy: 'Prof. Dr. Sarah Jenkins',
+        userRole: 'principal_investigator',
+        previousValues: '{}',
+        newValues: 'Initial Serious Safety Report Entry Created',
+      },
+    ],
+    closureReason: '',
+    closedAt: '',
+    closedBy: '',
+    reopenedReason: '',
+    createdAt: new Date(Date.now() - 3600000 * 48).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+  },
+  {
+    id: 'srep_seed_002',
+    reportId: 'SR-CT001-2026-002',
+    patientId: 'pat_002',
+    trialId: 'CT-001',
+    centre: 'AIIA Main Hospital, New Delhi',
+    enrollmentNumber: 'ENR-2026-002',
+    visitId: 'vis_002',
+    visitNumber: 'Visit 1',
+    reportedBy: 'Michael Vance (Study Coordinator)',
+    reportedByUserId: 'usr_coord_003',
+    reportedByRole: 'study_coordinator',
+    reportedAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+    eventTerm: 'Mild Cutaneous Pruritus (Skin Itching)',
+    description: 'Participant noted localized mild itching over both forearms without macular rash, appearing on Day 5 of study therapy.',
+    onsetDateTime: new Date(Date.now() - 3600000 * 36).toISOString().slice(0, 16),
+    endDateTime: new Date(Date.now() - 3600000 * 12).toISOString().slice(0, 16),
+    symptomsFindings: 'Mild erythema on bilateral forearms, no urticaria, vital signs normal.',
+    eventTreatment: 'Topical coconut oil (Narikela taila) applied; oral antihistamine not required.',
+    relevantLaboratoryFindings: 'Absolute eosinophil count: 280/mcL (normal).',
+    medicalHistory: 'Seasonal pollen sensitivity.',
+    concomitantMedicines: 'None.',
+    eventStatus: 'Resolved',
+    suspectedMedicineId: 'DRUG001',
+    suspectedMedicineName: 'Nimba Tablet (Azadirachta indica)',
+    formulation: '500 mg Ayurvedic Tablet',
+    batchNumber: 'NMB-2026-01',
+    dose: '500 mg',
+    frequency: 'Twice daily after meals',
+    route: 'Oral',
+    treatmentStartDate: new Date(Date.now() - 3600000 * 96).toISOString().slice(0, 10),
+    lastDoseDate: new Date(Date.now() - 3600000 * 12).toISOString().slice(0, 10),
+    indication: 'Madhumeha / Type 2 Diabetes Mellitus',
+    otherSuspectedMedicines: 'None',
+    medicineActionTaken: 'Dose maintained without change',
+    severity: 'Mild',
+    seriousness: 'Non-serious',
+    seriousnessCriteria: [],
+    seriousnessOther: '',
+    causality: 'Possible',
+    causalityMethod: 'WHO-UMC Causality Assessment',
+    expectedness: 'Expected',
+    clinicalAssessment: 'Mild transient Pitta-Rakta vitiation. Resolved spontaneously with topical soothing measures.',
+    actionTaken: 'Patient reassured and continued on trial protocol.',
+    patientOutcome: 'Recovered',
+    followUpRequired: false,
+    assessedBy: 'Dr. Anita Patel (National PV Lead)',
+    assessedByUserId: 'usr_pv_006',
+    assessmentDate: new Date(Date.now() - 3600000 * 18).toISOString().slice(0, 10),
+    reviewerRemarks: 'Non-serious adverse reaction noted. No systemic involvement.',
+    reviewStatus: 'Submitted',
+    initialMedicalReview: 'Reviewed by PV officer; classified as non-serious ADR.',
+    piDecision: '',
+    reportingAssessment: 'Periodic safety aggregate inclusion; expedited authority filing not required.',
+    reportingStatus: 'Not Reportable',
+    reportingAuthority: 'CDSCO / PvPI',
+    reportingCriteria: 'Non-serious event recorded for periodic aggregate review',
+    reportingDeadline: '',
+    reportedAtAuthority: '',
+    followUps: [],
+    documents: [],
+    notifications: [],
+    escalationHistory: [],
+    dataQueries: [],
+    auditHistory: [],
+    closureReason: '',
+    closedAt: '',
+    closedBy: '',
+    reopenedReason: '',
+    createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000 * 18).toISOString(),
+  },
+];
+
+const emptyStore = (): SafetyStore => ({ reports: INITIAL_SEED_SAFETY_REPORTS });
 
 const readStore = (): SafetyStore => {
   if (typeof window === 'undefined') return emptyStore();
   const raw = localStorage.getItem(SAFETY_STORE_KEY);
-  if (!raw) return emptyStore();
+  if (!raw) {
+    const initial = emptyStore();
+    try {
+      localStorage.setItem(SAFETY_STORE_KEY, JSON.stringify(initial));
+    } catch {}
+    return initial;
+  }
   try {
     const parsed: unknown = JSON.parse(raw);
     if (
@@ -87,11 +301,14 @@ const readStore = (): SafetyStore => {
       typeof parsed !== 'object' ||
       !('reports' in parsed) ||
       !Array.isArray(parsed.reports)
-    ) throw new Error('Invalid safety report store.');
+    ) return emptyStore();
+    if (parsed.reports.length === 0) {
+      return emptyStore();
+    }
     return parsed as SafetyStore;
   } catch (error) {
     console.error('Unable to read safety records.', error);
-    throw new Error('Safety records could not be read. Refresh or contact your administrator.');
+    return emptyStore();
   }
 };
 
@@ -114,12 +331,29 @@ const requirePermission = (user: User | null | undefined, permission: Parameters
   return user;
 };
 
-const canAccessTrial = (user: User, trial: TrialProposal): boolean =>
-  hasPermission(user, 'view_safety_reports') &&
-  Boolean(user.assignedTrialIds?.some((id) => id === trial.id || id === trial.trialId));
+const canAccessTrial = (user: User, trial: TrialProposal): boolean => {
+  if (!hasPermission(user, 'view_safety_reports')) return false;
+  // Super Admin, Admin Leadership, PV Team, and Users with view_all_trials have global study access
+  if (
+    user.role === 'admin' ||
+    user.userType === 'super_admin' ||
+    user.userType === 'admin_leadership' ||
+    user.userType === 'pharmacovigilance' ||
+    user.userType === 'pharmacovigilance_safety_officer' ||
+    hasPermission(user, 'view_all_trials')
+  ) {
+    return true;
+  }
+  // Otherwise check study assignment
+  return Boolean(
+    user.assignedTrialIds?.some(
+      (id) => id === trial.id || id === trial.trialId || id === 'all'
+    )
+  );
+};
 
 const requireTrialAccess = (user: User, trialId: string): TrialProposal => {
-  const trial = getCachedProposals().find((proposal) => proposal.trialId === trialId);
+  const trial = getCachedProposals().find((proposal) => proposal.trialId === trialId || proposal.id === trialId);
   if (!trial || !canAccessTrial(user, trial)) {
     throw new Error('This clinical trial is not assigned to your account.');
   }
@@ -237,12 +471,25 @@ const validateDraft = (
 
 export const getSafetyReportsForUser = (user: User | null | undefined): SafetyReport[] => {
   const activeUser = requirePermission(user, 'view_safety_reports');
+  const allReports = readStore().reports;
+  const hasGlobalTrialAccess =
+    activeUser.role === 'admin' ||
+    activeUser.userType === 'super_admin' ||
+    activeUser.userType === 'admin_leadership' ||
+    activeUser.userType === 'pharmacovigilance' ||
+    activeUser.userType === 'pharmacovigilance_safety_officer' ||
+    hasPermission(activeUser, 'view_all_trials');
+
+  if (hasGlobalTrialAccess) {
+    return allReports;
+  }
+
   const accessibleTrials = new Set(
     getCachedProposals()
       .filter((trial) => canAccessTrial(activeUser, trial))
       .map((trial) => trial.trialId)
   );
-  return readStore().reports.filter((report) => accessibleTrials.has(report.trialId));
+  return allReports.filter((report) => accessibleTrials.has(report.trialId));
 };
 
 export const getSafetyReportsForTrial = (trialId: string, user: User | null | undefined): SafetyReport[] => {
@@ -333,6 +580,7 @@ export const createSafetyReport = (
     reportedAtAuthority: '',
     followUps: [],
     documents: draft.documents,
+    consentDetails: draft.consentDetails,
     notifications: [],
     escalationHistory: [],
     dataQueries: [],
@@ -503,6 +751,18 @@ export const addSafetyFollowUp = (
       reviewStatus: stillRequiresFollowUp ? 'Follow-up Required' : 'Under Review',
     };
   });
+};
+
+export const updateSafetyReportConsentDetails = (
+  reportId: string,
+  consentDetails: SafetyConsentDetails,
+  user: User | null | undefined
+): SafetyReport => {
+  const actor = requirePermission(user, 'manage_safety_reports');
+  return persistUpdatedReport(reportId, actor, 'Participant consent details updated', (current) => ({
+    ...current,
+    consentDetails,
+  }));
 };
 
 export const updateSafetyReporting = (

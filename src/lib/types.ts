@@ -1,83 +1,107 @@
 export type Role = 'admin' | 'user';
 
 export type UserType =
-  | 'system_administrator'
+  // 10 Core User Access Modules (AIIA CTMS)
+  | 'super_admin'
   | 'principal_investigator'
-  | 'co_investigator_doctor'
-  | 'study_coordinator_team_member'
-  | 'pharmacovigilance_safety_officer'
-  | 'data_manager'
-  | 'viewer_read_only'
-  | 'administration'
   | 'study_coordinator'
-  | 'monitor'
+  | 'clinical_monitor'
   | 'ethics_committee'
   | 'pharmacovigilance'
+  | 'data_manager'
+  | 'dsmb_member'
+  | 'admin_leadership'
+  | 'regulator_auditor'
+  // Legacy aliases for backward compatibility
+  | 'system_administrator'
+  | 'administration'
+  | 'study_coordinator_team_member'
+  | 'co_investigator_doctor'
+  | 'monitor'
+  | 'pharmacovigilance_safety_officer'
+  | 'viewer_read_only'
   | 'regulator_read_only';
 
 export type PermissionKey =
+  // Core Administration & Security
   | 'manage_users'
   | 'manage_system_settings'
+  | 'assign_trial_access'
+  | 'assign_centre_access'
+  | 'view_audit_logs'
+  | 'manage_deadlines'
+  | 'view_deadlines'
+  | 'manage_reminders'
+  | 'delete_users'
+  // Protocol & Trial
   | 'create_trials'
   | 'edit_protocols'
+  | 'delete_trials'
   | 'view_all_trials'
   | 'view_trial_dashboard'
   | 'manage_trial_configuration'
-  | 'assign_trial_access'
-  | 'assign_centre_access'
+  | 'define_visit_definitions'
+  | 'manage_trial_regulatory'
+  | 'approve_trial_regulatory'
+  // Patient, Consent & Clinical Data
+  | 'manage_patient_demographics'
+  | 'delete_patients'
   | 'review_patient_registration'
+  | 'manage_consent_workflow'
   | 'review_consent_status'
   | 'perform_screening'
   | 'confirm_eligibility'
   | 'approve_enrollment'
-  | 'define_visit_definitions'
-  | 'view_patient_visits'
-  | 'manage_patient_demographics'
-  | 'manage_consent_workflow'
+  | 'enroll_patients'
   | 'schedule_screening'
   | 'schedule_visits'
+  | 'conduct_patient_visits'
+  | 'view_patient_visits'
   | 'enter_permitted_clinical_data'
   | 'record_clinical_assessment'
   | 'record_ayurvedic_assessment'
-  | 'conduct_patient_visits'
   | 'record_medications'
   | 'record_treatment_response'
-  | 'identify_adr'
-  | 'enroll_patients'
   | 'enter_ecrf'
   | 'approve_ecrf'
   | 'sign_crf'
+  // Monitoring & Data Quality
   | 'sdv_verification'
   | 'create_queries'
+  | 'raise_data_queries'
   | 'submit_monitoring_reports'
+  | 'view_trial_data'
+  | 'review_patient_records'
+  | 'review_lab_data'
+  | 'review_data_quality'
+  // Ethics & Governance
   | 'review_protocols'
   | 'approve_ethics'
-  | 'manage_safety_reports'
+  // Pharmacovigilance & Safety
+  | 'identify_adr'
   | 'report_sae'
   | 'safety_triage'
   | 'review_adr_events'
   | 'assess_safety_causality'
   | 'record_safety_actions'
   | 'generate_safety_reports'
-  | 'view_trial_data'
-  | 'review_patient_records'
-  | 'review_lab_data'
-  | 'review_data_quality'
-  | 'raise_data_queries'
-  | 'view_audit_logs'
-  | 'export_reports'
-  | 'view_regulatory_tmf'
-  | 'read_only_view'
-  | 'manage_trial_regulatory'
-  | 'approve_trial_regulatory'
-  | 'approve_treatment_certificates'
   | 'view_safety_reports'
   | 'create_safety_reports'
   | 'edit_safety_reports'
   | 'review_safety_reports'
   | 'assess_safety_reports'
+  | 'manage_safety_reports'
   | 'manage_safety_followups'
-  | 'close_safety_reports';
+  | 'close_safety_reports'
+  // Analytics, DSMB, Certificates & Regulatory
+  | 'view_dsmb_reports'
+  | 'view_leadership_dashboard'
+  | 'approve_treatment_certificates'
+  | 'export_reports'
+  | 'export_safety_csv'
+  | 'export_trial_data'
+  | 'view_regulatory_tmf'
+  | 'read_only_view';
 
 export interface UserTypeConfig {
   id: UserType;
@@ -334,6 +358,7 @@ export interface SafetyReport {
   reportedAtAuthority: string;
   followUps: SafetyFollowUp[];
   documents: SafetyDocument[];
+  consentDetails?: SafetyConsentDetails;
   notifications: SafetyNotification[];
   escalationHistory: SafetyEscalation[];
   dataQueries: SafetyDataQuery[];
@@ -557,11 +582,27 @@ export type PatientLifecycleStatus =
 export interface DemoConsentDocument {
   id: string;
   fileName: string;
-  fileType: 'JPG' | 'JPEG' | 'PNG' | 'PDF';
+  fileType: 'JPG' | 'JPEG' | 'PNG' | 'PDF' | 'CSV';
   mimeType: string;
   uploadedAt: string;
   uploadedBy: string;
   previewDataUrl?: string;
+  csvDataSnippet?: string;
+}
+
+export interface ConsentAnalysisResult {
+  detectedStatus: ConsentStatus;
+  confidenceScore: number;
+  hasSignature: boolean;
+  hasWitnessSignature: boolean;
+  hasDate: boolean;
+  documentClassification?: string;
+  detectedConsentVersion?: string;
+  analysisSummary: string;
+  extractedKeywords: string[];
+  extractedFields?: string[];
+  missingFields?: string[];
+  analyzedAt: string;
 }
 
 export interface PatientConsent {
@@ -573,6 +614,7 @@ export interface PatientConsent {
   consentTime?: string;
   consentVersion?: string;
   document?: DemoConsentDocument | null;
+  analysisResult?: ConsentAnalysisResult | null;
   obtainedBy?: string;
   witnessName?: string;
   remarks?: string;
@@ -580,6 +622,73 @@ export interface PatientConsent {
   updatedAt: string;
   createdBy?: string;
   updatedBy?: string;
+}
+
+export interface SafetyConsentDetails {
+  status: ConsentStatus;
+  consentDate?: string;
+  consentVersion?: string;
+  obtainedBy?: string;
+  witnessName?: string;
+  larConfirmed?: boolean;
+  remarks?: string;
+  document?: DemoConsentDocument | null;
+  analysisResult?: ConsentAnalysisResult | null;
+}
+
+export type DeadlineCategory =
+  | 'protocol_approval'
+  | 'ethics_approval'
+  | 'ctri_registration'
+  | 'cdsco_permission'
+  | 'treatment_certificate'
+  | 'safety_report_review'
+  | 'safety_expedited_submission'
+  | 'interim_analysis'
+  | 'ethics'
+  | 'cdsco'
+  | 'ctri'
+  | 'investigator_cert'
+  | 'gcp_cert'
+  | 'site_clearance'
+  | 'other';
+
+export interface TrialDeadline {
+  id: string;
+  title: string;
+  category: DeadlineCategory;
+  trialId: string;
+  centreId?: string;
+  dueDate: string; // YYYY-MM-DD
+  assignedToUserId: string;
+  assignedToName: string;
+  assignedToRole: UserType;
+  priority?: 'low' | 'medium' | 'high' | 'critical';
+  status: 'pending' | 'in_progress' | 'completed' | 'overdue' | 'escalated';
+  reminderDaysBefore: number[];
+  escalateToAdminIfOverdue?: boolean;
+  escalationUserId?: string;
+  escalationUserName?: string;
+  escalationAdminEmail?: string;
+  notes?: string;
+  remarks?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminAuditLog {
+  id: string;
+  action: string;
+  category?: 'User Management' | 'Permissions' | 'Study Assignment' | 'Deadlines' | 'Security' | string;
+  details: string;
+  performedBy: string;
+  performedByEmail?: string;
+  performedByRole?: string;
+  userRole?: string;
+  targetId?: string;
+  targetName?: string;
+  targetUser?: string;
+  timestamp: string;
 }
 
 export interface PatientScreening {

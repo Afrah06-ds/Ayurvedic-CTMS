@@ -37,7 +37,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return null;
   }
 
-  if (requireAdmin && user.role !== 'admin') {
+  const isAuthorizedAdmin =
+    user.role === 'admin' ||
+    user.userType === 'super_admin' ||
+    user.userType === 'administration' ||
+    user.userType === 'system_administrator' ||
+    user.permissions?.includes('manage_users');
+
+  if (requireAdmin && !isAuthorizedAdmin) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl p-8 text-center shadow-2xl">

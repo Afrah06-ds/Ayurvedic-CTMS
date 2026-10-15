@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -16,17 +16,67 @@ import {
   Pill,
   Leaf,
   HeartPulse,
+  Bell,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  ChevronRight,
+  ExternalLink,
 } from 'lucide-react';
 import { hasPermission } from '@/lib/permissions';
+import { getCachedDeadlines, updateDeadlineStatus } from '@/lib/storage';
+import { TrialDeadline } from '@/lib/types';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const pathname = usePathname();
 
+  const [deadlines, setDeadlines] = useState<TrialDeadline[]>([]);
+  const [showDeadlineDropdown, setShowDeadlineDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const allDeadlines = getCachedDeadlines();
+      setDeadlines(allDeadlines);
+    } catch {
+      // ignore
+    }
+  }, [pathname]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDeadlineDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   if (!user) return null;
 
-  const isAdmin = user.role === 'admin' || user.userType === 'administration' || user.userType === 'system_administrator';
+  const isAdmin =
+    user.role === 'admin' ||
+    user.userType === 'super_admin' ||
+    user.userType === 'administration' ||
+    user.userType === 'system_administrator' ||
+    hasPermission(user, 'manage_users');
   const typeConfig = getUserTypeConfig(user.userType);
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const userDeadlines = deadlines.filter((d) => {
+    if (isAdmin) return d.status !== 'completed';
+    return (
+      (d.assignedToUserId === user.id || d.assignedToUserId === user.email || d.assignedToRole === user.userType) &&
+      d.status !== 'completed'
+    );
+  });
+
+  const overdueCount = userDeadlines.filter(
+    (d) => d.dueDate < todayStr || d.status === 'overdue' || d.status === 'escalated'
+  ).length;
+  const pendingCount = userDeadlines.length;
 
   return (
     <header className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-slate-100">
@@ -130,6 +180,100 @@ export const Navbar: React.FC = () => {
               <Database className="w-3 h-3 text-emerald-400" />
               <span>Temp Cache</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            </div>
+
+            {/* Approval & Certificate Deadlines Notification Button (Issue 7) */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setShowDeadlineDropdown((prev) => !prev)}
+                className={`relative p-2 rounded-xl border transition-all flex items-center justify-center ${
+                  overdueCount > 0
+                    ? 'bg-rose-500/15 border-rose-500/30 text-rose-300 hover:bg-rose-500/25'
+                    : pendingCount > 0
+                    ? 'bg-amber-500/15 border-amber-500/30 text-amber-300 hover:bg-amber-500/25'
+                    : 'bg-slate-800/60 border-slate-700/60 text-slate-400 hover:text-white hover:bg-slate-800'
+                }`}
+                title="Approval & Certificate Deadlines"
+              >
+                <Clock className="w-4 h-4" />
+                {pendingCount > 0 && (
+                  <span
+                    className={`absolute -top-1 -right-1 text-[10px] font-bold px-1.5 py-0.2 rounded-full text-white shadow-sm ${
+                      overdueCount > 0 ? 'bg-rose-500 animate-pulse' : 'bg-amber-500'
+                    }`}
+                  >
+                    {overdueCount > 0 ? overdueCount : pendingCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Dropdown Menu */}
+              {showDeadlineDropdown && (
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-4 z-50 animate-fadeIn space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-amber-400" />
+                      <span className="text-xs font-bold text-white uppercase tracking-wider">
+                        Approval &amp; Certificate Deadlines
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-slate-400">
+                      {pendingCount} Pending{overdueCount > 0 ? ` (${overdueCount} Overdue)` : ''}
+                    </span>
+                  </div>
+
+                  <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
+                    {userDeadlines.length === 0 ? (
+                      <p className="text-xs text-slate-400 py-3 text-center">No pending approval or certificate deadlines.</p>
+                    ) : (
+                      userDeadlines.map((d) => {
+                        const isOverdue = d.dueDate < todayStr || d.status === 'overdue' || d.status === 'escalated';
+                        return (
+                          <div
+                            key={d.id}
+                            className={`p-3 rounded-xl border text-xs space-y-1.5 transition-all ${
+                              isOverdue
+                                ? 'bg-rose-950/30 border-rose-600/40'
+                                : 'bg-slate-800/60 border-slate-700/60'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <span className="font-semibold text-white leading-tight">{d.title}</span>
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shrink-0 ${
+                                  isOverdue
+                                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                    : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                }`}
+                              >
+                                {isOverdue ? 'Overdue' : `Due ${d.dueDate}`}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-[11px] text-slate-400">
+                              <span>Trial: <strong className="text-slate-200">{d.trialId}</strong></span>
+                              <span>Assigned: <strong className="text-slate-200">{d.assignedToName}</strong></span>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {isAdmin && (
+                    <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-xs">
+                      <Link
+                        href="/admin"
+                        onClick={() => setShowDeadlineDropdown(false)}
+                        className="text-blue-400 hover:underline flex items-center gap-1 font-medium"
+                      >
+                        <span>Manage All Deadlines in Admin Panel</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-3 bg-slate-800/60 border border-slate-700/60 rounded-xl px-3 py-1.5">

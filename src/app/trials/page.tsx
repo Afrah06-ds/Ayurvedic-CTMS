@@ -269,6 +269,9 @@ function TrialsContent() {
     }
   };
 
+  // Multi-select state for clinical trials
+  const [selectedTrialIds, setSelectedTrialIds] = useState<string[]>([]);
+
   // Filtered proposals list
   const filteredProposals = proposals.filter((p) => {
     const q = searchQuery.toLowerCase();
@@ -282,6 +285,62 @@ function TrialsContent() {
     return matchesSearch && matchesStatus;
   });
 
+  const handleToggleSelectTrial = (id: string) => {
+    setSelectedTrialIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedTrialIds.length === filteredProposals.length) {
+      setSelectedTrialIds([]);
+    } else {
+      setSelectedTrialIds(filteredProposals.map((p) => p.id));
+    }
+  };
+
+  const handleBatchStatusChange = (newStatus: ProposalStatus) => {
+    if (selectedTrialIds.length === 0) return;
+    selectedTrialIds.forEach((id) => {
+      updateProposalInCache(id, { proposalStatus: newStatus });
+    });
+    loadData();
+  };
+
+  const handleBatchExport = () => {
+    const selected = proposals.filter((p) => selectedTrialIds.includes(p.id));
+    if (selected.length === 0) return;
+
+    const headers = ['Trial ID', 'Title', 'Phase', 'Type', 'Target Condition', 'Sample Size', 'Duration', 'Status', 'Centres Count'];
+    const rows = selected.map((p) => [
+      `"${p.trialId.replace(/"/g, '""')}"`,
+      `"${p.trialTitle.replace(/"/g, '""')}"`,
+      `"${p.studyPhase.replace(/"/g, '""')}"`,
+      `"${p.studyType.replace(/"/g, '""')}"`,
+      `"${p.targetDisease.replace(/"/g, '""')}"`,
+      `"${p.sampleSize}"`,
+      `"${p.duration}"`,
+      `"${p.proposalStatus}"`,
+      `"${(p.selectedCentreIds || []).length}"`,
+    ]);
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `selected-clinical-trials-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleBatchDelete = () => {
+    if (confirm(`Are you sure you want to delete ${selectedTrialIds.length} selected trials?`)) {
+      selectedTrialIds.forEach((id) => deleteProposalFromCache(id));
+      setSelectedTrialIds([]);
+      loadData();
+    }
+  };
+
   return (
     <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Page Header */}
@@ -292,10 +351,10 @@ function TrialsContent() {
             <span>Clinical Research Protocol Management</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-            Trial Proposals & Site Selection
+            Trial Proposals &amp; Site Selection
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Create, design, and manage clinical trial proposals with multi-centre selection and protocol parameters.
+            Create, design, and manage clinical trial proposals with multi-trial selection, batch actions, and protocol parameters.
           </p>
         </div>
 
@@ -325,6 +384,23 @@ function TrialsContent() {
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+            <button
+              type="button"
+              onClick={handleSelectAll}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-xs text-slate-200 hover:bg-slate-700 transition"
+            >
+              {selectedTrialIds.length === filteredProposals.length && filteredProposals.length > 0 ? (
+                <CheckSquare className="w-3.5 h-3.5 text-blue-400" />
+              ) : (
+                <Square className="w-3.5 h-3.5 text-slate-400" />
+              )}
+              <span>
+                {selectedTrialIds.length === filteredProposals.length && filteredProposals.length > 0
+                  ? 'Deselect All'
+                  : `Select All (${filteredProposals.length})`}
+              </span>
+            </button>
+
             <div className="flex items-center gap-2 text-xs">
               <span className="text-slate-400">Proposal Status:</span>
               <select
@@ -343,6 +419,67 @@ function TrialsContent() {
           </div>
         </div>
 
+        {/* Multi-Selection Batch Actions Toolbar */}
+        {selectedTrialIds.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-blue-500/40 bg-blue-950/40 p-3.5 text-sm animate-fadeIn">
+            <div className="flex items-center gap-2 font-medium text-blue-200">
+              <CheckCircle2 className="w-4 h-4 text-blue-400" />
+              <span>{selectedTrialIds.length} Clinical Trials Selected</span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1 text-xs">
+                <span className="text-slate-300">Set Status:</span>
+                <select
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      handleBatchStatusChange(e.target.value as ProposalStatus);
+                      e.target.value = '';
+                    }
+                  }}
+                  defaultValue=""
+                  className="rounded border border-blue-500/50 bg-slate-900 px-2.5 py-1 text-xs text-white focus:outline-none"
+                >
+                  <option value="" disabled>Choose Status...</option>
+                  <option value="Draft">Draft</option>
+                  <option value="Submitted">Submitted</option>
+                  <option value="Under Review">Under Review</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Active">Active</option>
+                </select>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleBatchExport}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-200 hover:bg-slate-700 transition"
+              >
+                <Download className="w-3.5 h-3.5 text-blue-400" />
+                <span>Export Selected (CSV)</span>
+              </button>
+
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={handleBatchDelete}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-rose-800/80 bg-rose-950/60 px-3 py-1 text-xs font-medium text-rose-300 hover:bg-rose-900/60 transition"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                  <span>Delete Selected</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setSelectedTrialIds([])}
+                className="rounded px-2.5 py-1 text-xs text-slate-400 hover:text-white transition"
+              >
+                Clear Selection
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Proposals Directory Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
           {filteredProposals.length === 0 ? (
@@ -359,28 +496,47 @@ function TrialsContent() {
               const assignedCentres = availableCentres.filter((c) =>
                 p.selectedCentreIds?.includes(c.id)
               );
+              const isSelected = selectedTrialIds.includes(p.id);
 
               return (
                 <div
                   key={p.id}
-                  className="bg-slate-900/90 border border-slate-800 hover:border-slate-700 rounded-3xl p-6 shadow-xl flex flex-col justify-between space-y-4 transition-all"
+                  className={`bg-slate-900/90 border rounded-3xl p-6 shadow-xl flex flex-col justify-between space-y-4 transition-all ${
+                    isSelected
+                      ? 'border-blue-500/80 bg-blue-950/20 ring-1 ring-blue-500/40'
+                      : 'border-slate-800 hover:border-slate-700'
+                  }`}
                 >
                   <div className="space-y-3">
-                    {/* Header */}
+                    {/* Header with Multi-Select Checkbox */}
                     <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-blue-500/15 text-blue-300 border border-blue-500/30">
-                            {p.trialId}
-                          </span>
-                          <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                            {p.studyPhase}
-                          </span>
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                            {p.studyType}
-                          </span>
+                      <div className="flex items-start gap-3">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleSelectTrial(p.id)}
+                          className="mt-1 text-slate-400 hover:text-white transition-colors"
+                          title={isSelected ? 'Deselect trial' : 'Select trial'}
+                        >
+                          {isSelected ? (
+                            <CheckSquare className="w-4 h-4 text-blue-400" />
+                          ) : (
+                            <Square className="w-4 h-4 text-slate-500" />
+                          )}
+                        </button>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-blue-500/15 text-blue-300 border border-blue-500/30">
+                              {p.trialId}
+                            </span>
+                            <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                              {p.studyPhase}
+                            </span>
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                              {p.studyType}
+                            </span>
+                          </div>
+                          <h3 className="text-base font-bold text-white leading-snug">{p.trialTitle}</h3>
                         </div>
-                        <h3 className="text-base font-bold text-white leading-snug">{p.trialTitle}</h3>
                       </div>
 
                       <span
