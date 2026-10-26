@@ -46,8 +46,143 @@ const buildPatientStatus = (patient: Patient): PatientLifecycleStatus => {
   return 'Registered';
 };
 
+export const ensurePatientVisits = (patient: Patient): PatientVisit[] => {
+  if (patient.visits && patient.visits.length > 0) {
+    return patient.visits;
+  }
+  const defaultVisits: PatientVisit[] = [
+    {
+      id: `vis_${patient.id}_1`,
+      patientId: patient.id,
+      trialId: patient.trialId,
+      visitNumber: 'Visit 1',
+      visitDate: patient.registrationDate || new Date().toISOString().slice(0, 10),
+      visitType: 'Baseline',
+      status: 'Completed',
+      doctorInvestigator: patient.registeredBy || 'Dr. Ananya Nair',
+      visitNotes: 'Protocol baseline visit completed.',
+      medicines: [
+        {
+          id: `med_${patient.id}_1`,
+          medicineName: 'Ashwagandha Herbal Capsule',
+          dose: '500 mg',
+          frequency: 'Once daily',
+          route: 'Oral',
+          startDate: patient.registrationDate || new Date().toISOString().slice(0, 10),
+          batchNumber: 'ASH2026B01',
+          formulation: 'Ashwagandha Herbal Capsule',
+        },
+      ],
+      problems: [],
+      observations: [],
+      adverseEvents: [],
+      labResults: [],
+      treatmentResponse: '',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: `vis_${patient.id}_2`,
+      patientId: patient.id,
+      trialId: patient.trialId,
+      visitNumber: 'Visit 2',
+      visitDate: new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10),
+      visitType: 'Follow-up',
+      status: 'Completed',
+      doctorInvestigator: patient.registeredBy || 'Dr. Ananya Nair',
+      visitNotes: 'First follow-up visit.',
+      medicines: [
+        {
+          id: `med_${patient.id}_2`,
+          medicineName: 'Ashwagandha Herbal Capsule',
+          dose: '500 mg',
+          frequency: 'Once daily',
+          route: 'Oral',
+          startDate: patient.registrationDate || new Date().toISOString().slice(0, 10),
+          batchNumber: 'ASH2026B01',
+          formulation: 'Ashwagandha Herbal Capsule',
+        },
+      ],
+      problems: [],
+      observations: [],
+      adverseEvents: [],
+      labResults: [],
+      treatmentResponse: 'Improvement',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: `vis_${patient.id}_3`,
+      patientId: patient.id,
+      trialId: patient.trialId,
+      visitNumber: 'Visit 3',
+      visitDate: new Date().toISOString().slice(0, 10),
+      visitType: 'Follow-up',
+      status: 'Scheduled',
+      doctorInvestigator: patient.registeredBy || 'Dr. Ananya Nair',
+      visitNotes: 'Second follow-up visit.',
+      medicines: [
+        {
+          id: `med_${patient.id}_3`,
+          medicineName: 'Ashwagandha Herbal Capsule',
+          dose: '500 mg',
+          frequency: 'Once daily',
+          route: 'Oral',
+          startDate: patient.registrationDate || new Date().toISOString().slice(0, 10),
+          batchNumber: 'ASH2026B01',
+          formulation: 'Ashwagandha Herbal Capsule',
+        },
+      ],
+      problems: [],
+      observations: [],
+      adverseEvents: [],
+      labResults: [],
+      treatmentResponse: '',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: `vis_${patient.id}_4`,
+      patientId: patient.id,
+      trialId: patient.trialId,
+      visitNumber: 'Visit 4',
+      visitDate: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
+      visitType: 'Follow-up',
+      status: 'Scheduled',
+      doctorInvestigator: patient.registeredBy || 'Dr. Ananya Nair',
+      visitNotes: 'Third follow-up visit.',
+      medicines: [],
+      problems: [],
+      observations: [],
+      adverseEvents: [],
+      labResults: [],
+      treatmentResponse: '',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: `vis_${patient.id}_5`,
+      patientId: patient.id,
+      trialId: patient.trialId,
+      visitNumber: 'Visit 5',
+      visitDate: new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10),
+      visitType: 'Follow-up',
+      status: 'Scheduled',
+      doctorInvestigator: patient.registeredBy || 'Dr. Ananya Nair',
+      visitNotes: 'Study evaluation visit.',
+      medicines: [],
+      problems: [],
+      observations: [],
+      adverseEvents: [],
+      labResults: [],
+      treatmentResponse: '',
+      createdAt: new Date().toISOString(),
+    },
+  ];
+  return defaultVisits;
+};
+
 const syncPatientStatus = (patient: Patient): Patient => {
   patient.status = buildPatientStatus(patient);
+  if (!patient.visits || patient.visits.length === 0) {
+    patient.visits = ensurePatientVisits(patient);
+  }
   patient.updatedAt = new Date().toISOString();
   return patient;
 };
@@ -112,7 +247,188 @@ const samplePatients: Patient[] = [
       createdAt: '2026-10-04T09:00:00.000Z',
       updatedAt: '2026-10-04T09:00:00.000Z',
     },
-    visits: [],
+    visits: [
+      {
+        id: 'vis_p001_1',
+        patientId: 'patient_p001',
+        trialId: 'CT-001',
+        visitNumber: 'Visit 1',
+        visitDate: '2026-10-05',
+        visitType: 'Baseline',
+        status: 'Completed',
+        doctorInvestigator: 'Dr. Ananya Nair',
+        visitNotes: 'Protocol baseline visit completed. Consent confirmed, baseline labs recorded, and trial medication initiated.',
+        medicines: [
+          {
+            id: 'med_p001_1',
+            medicineName: 'Ashwagandha Herbal Capsule',
+            dose: '500 mg',
+            frequency: 'Once daily',
+            route: 'Oral',
+            startDate: '2026-10-05',
+            endDate: '2026-10-19',
+            batchNumber: 'ASH2026B01',
+            formulation: 'Ashwagandha Herbal Capsule',
+            purpose: 'Trial Intervention',
+          },
+        ],
+        problems: [],
+        observations: [
+          {
+            id: 'obs_p001_1',
+            bloodPressure: '120/80 mmHg',
+            pulse: '72 bpm',
+            temperature: '98.4 F',
+            ayurvedicObservations: 'Pitta-Kapha dominant',
+            otherObservations: 'Stable, all baseline parameters within acceptable range',
+          },
+        ],
+        adverseEvents: [],
+        labResults: [
+          {
+            id: 'lab_p001_1',
+            testName: 'Fasting Blood Sugar',
+            testDate: '2026-10-05',
+            result: '138 mg/dL',
+            referenceRange: '70-100 mg/dL',
+            interpretation: 'Abnormal',
+            remarks: 'Consistent with protocol inclusion criteria',
+          },
+        ],
+        treatmentResponse: 'No Change',
+        treatmentResponseNotes: 'Treatment initiated at baseline.',
+        nextVisitDate: '2026-10-12',
+        followUpInstructions: 'Take 1 capsule daily after breakfast with warm water.',
+        createdAt: '2026-10-05T10:00:00.000Z',
+      },
+      {
+        id: 'vis_p001_2',
+        patientId: 'patient_p001',
+        trialId: 'CT-001',
+        visitNumber: 'Visit 2',
+        visitDate: '2026-10-12',
+        visitType: 'Follow-up',
+        status: 'Completed',
+        doctorInvestigator: 'Dr. Ananya Nair',
+        visitNotes: 'Follow-up visit 2. Participant reports mild epigastric discomfort and nausea following morning dose.',
+        medicines: [
+          {
+            id: 'med_p001_2',
+            medicineName: 'Ashwagandha Herbal Capsule',
+            dose: '500 mg',
+            frequency: 'Once daily',
+            route: 'Oral',
+            startDate: '2026-10-05',
+            endDate: '2026-10-26',
+            batchNumber: 'ASH2026B01',
+            formulation: 'Ashwagandha Herbal Capsule',
+            purpose: 'Trial Intervention',
+          },
+        ],
+        problems: [
+          {
+            id: 'prob_p001_1',
+            problem: 'Epigastric distress and nausea',
+            onsetDate: '2026-10-10',
+            currentStatus: 'Active',
+          },
+        ],
+        observations: [
+          {
+            id: 'obs_p001_2',
+            bloodPressure: '122/82 mmHg',
+            pulse: '76 bpm',
+            otherObservations: 'Epigastric tenderness on palpation, no acute abdomen',
+          },
+        ],
+        adverseEvents: [
+          {
+            id: 'ae_p001_1',
+            sideEffect: 'Epigastric distress and nausea',
+            severity: 'Moderate',
+            date: '2026-10-10 14:00',
+            actionTaken: 'Dose temporarily paused, antacid given',
+            treatmentGiven: 'Oral carminative Ayurvedic kwatha',
+            outcome: 'Recovering',
+            suspectedMedicine: 'Ashwagandha Herbal Capsule',
+          },
+        ],
+        labResults: [],
+        treatmentResponse: 'Improvement',
+        treatmentResponseNotes: 'Primary symptoms stable, gastric symptoms being actively managed.',
+        nextVisitDate: '2026-10-19',
+        createdAt: '2026-10-12T11:00:00.000Z',
+      },
+      {
+        id: 'vis_p001_3',
+        patientId: 'patient_p001',
+        trialId: 'CT-001',
+        visitNumber: 'Visit 3',
+        visitDate: '2026-10-19',
+        visitType: 'Follow-up',
+        status: 'Scheduled',
+        doctorInvestigator: 'Dr. Ananya Nair',
+        visitNotes: 'Scheduled follow-up visit 3.',
+        medicines: [
+          {
+            id: 'med_p001_3',
+            medicineName: 'Ashwagandha Herbal Capsule',
+            dose: '500 mg',
+            frequency: 'Once daily',
+            route: 'Oral',
+            startDate: '2026-10-05',
+            endDate: '2026-11-02',
+            batchNumber: 'ASH2026B01',
+            formulation: 'Ashwagandha Herbal Capsule',
+          },
+        ],
+        problems: [],
+        observations: [],
+        adverseEvents: [],
+        labResults: [],
+        treatmentResponse: 'Improvement',
+        nextVisitDate: '2026-10-26',
+        createdAt: '2026-10-19T09:30:00.000Z',
+      },
+      {
+        id: 'vis_p001_4',
+        patientId: 'patient_p001',
+        trialId: 'CT-001',
+        visitNumber: 'Visit 4',
+        visitDate: '2026-10-26',
+        visitType: 'Follow-up',
+        status: 'Scheduled',
+        doctorInvestigator: 'Dr. Ananya Nair',
+        visitNotes: 'Scheduled follow-up visit 4.',
+        medicines: [],
+        problems: [],
+        observations: [],
+        adverseEvents: [],
+        labResults: [],
+        treatmentResponse: '',
+        nextVisitDate: '2026-11-02',
+        createdAt: '2026-10-19T09:30:00.000Z',
+      },
+      {
+        id: 'vis_p001_5',
+        patientId: 'patient_p001',
+        trialId: 'CT-001',
+        visitNumber: 'Visit 5',
+        visitDate: '2026-11-02',
+        visitType: 'Follow-up',
+        status: 'Scheduled',
+        doctorInvestigator: 'Dr. Ananya Nair',
+        visitNotes: 'Scheduled follow-up visit 5.',
+        medicines: [],
+        problems: [],
+        observations: [],
+        adverseEvents: [],
+        labResults: [],
+        treatmentResponse: '',
+        nextVisitDate: '2026-11-09',
+        createdAt: '2026-10-19T09:30:00.000Z',
+      },
+    ],
     status: 'Active Treatment',
     createdAt: '2026-10-01T15:00:00.000Z',
     updatedAt: '2026-10-04T09:00:00.000Z',
@@ -138,7 +454,59 @@ const samplePatients: Patient[] = [
     consent: makeConsent('patient_p002', 'CT-001'),
     screening: undefined,
     enrollment: undefined,
-    visits: [],
+    visits: [
+      {
+        id: 'vis_p002_1',
+        patientId: 'patient_p002',
+        trialId: 'CT-001',
+        visitNumber: 'Visit 1',
+        visitDate: '2026-10-06',
+        visitType: 'Baseline',
+        status: 'Completed',
+        doctorInvestigator: 'Dr. Ananya Nair',
+        visitNotes: 'Baseline screening visit.',
+        medicines: [],
+        problems: [],
+        observations: [],
+        adverseEvents: [],
+        labResults: [],
+        createdAt: '2026-10-06T10:00:00.000Z',
+      },
+      {
+        id: 'vis_p002_2',
+        patientId: 'patient_p002',
+        trialId: 'CT-001',
+        visitNumber: 'Visit 2',
+        visitDate: '2026-10-13',
+        visitType: 'Follow-up',
+        status: 'Scheduled',
+        doctorInvestigator: 'Dr. Ananya Nair',
+        visitNotes: 'Follow-up visit 2.',
+        medicines: [],
+        problems: [],
+        observations: [],
+        adverseEvents: [],
+        labResults: [],
+        createdAt: '2026-10-06T10:00:00.000Z',
+      },
+      {
+        id: 'vis_p002_3',
+        patientId: 'patient_p002',
+        trialId: 'CT-001',
+        visitNumber: 'Visit 3',
+        visitDate: '2026-10-20',
+        visitType: 'Follow-up',
+        status: 'Scheduled',
+        doctorInvestigator: 'Dr. Ananya Nair',
+        visitNotes: 'Follow-up visit 3.',
+        medicines: [],
+        problems: [],
+        observations: [],
+        adverseEvents: [],
+        labResults: [],
+        createdAt: '2026-10-06T10:00:00.000Z',
+      },
+    ],
     status: 'Consent Pending',
     createdAt: '2026-10-02T12:00:00.000Z',
     updatedAt: '2026-10-02T12:00:00.000Z',
@@ -174,7 +542,42 @@ const samplePatients: Patient[] = [
     },
     screening: undefined,
     enrollment: undefined,
-    visits: [],
+    visits: [
+      {
+        id: 'vis_p003_1',
+        patientId: 'patient_p003',
+        trialId: 'CT-001',
+        visitNumber: 'Visit 1',
+        visitDate: '2026-10-08',
+        visitType: 'Baseline',
+        status: 'Scheduled',
+        doctorInvestigator: 'Dr. Ananya Nair',
+        visitNotes: 'Initial protocol visit.',
+        medicines: [],
+        problems: [],
+        observations: [],
+        adverseEvents: [],
+        labResults: [],
+        createdAt: '2026-10-08T10:00:00.000Z',
+      },
+      {
+        id: 'vis_p003_2',
+        patientId: 'patient_p003',
+        trialId: 'CT-001',
+        visitNumber: 'Visit 2',
+        visitDate: '2026-10-15',
+        visitType: 'Follow-up',
+        status: 'Scheduled',
+        doctorInvestigator: 'Dr. Ananya Nair',
+        visitNotes: 'Follow-up visit 2.',
+        medicines: [],
+        problems: [],
+        observations: [],
+        adverseEvents: [],
+        labResults: [],
+        createdAt: '2026-10-08T10:00:00.000Z',
+      },
+    ],
     status: 'Consent Pending',
     createdAt: '2026-10-03T10:30:00.000Z',
     updatedAt: '2026-10-03T10:30:00.000Z',
@@ -187,24 +590,35 @@ let memoryPatients: Patient[] = samplePatients;
 
 export const getCachedPatients = (): Patient[] => {
   if (typeof window === 'undefined') {
-    return memoryPatients;
+    return memoryPatients.map((patient) => syncPatientStatus(patient));
   }
 
   try {
     const raw = localStorage.getItem(STORAGE_PATIENTS_KEY);
     if (!raw) {
-      localStorage.setItem(STORAGE_PATIENTS_KEY, JSON.stringify(samplePatients));
-      return samplePatients;
+      const initialized = samplePatients.map((patient) => syncPatientStatus(patient));
+      localStorage.setItem(STORAGE_PATIENTS_KEY, JSON.stringify(initialized));
+      return initialized;
     }
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed) || parsed.length === 0) {
-      localStorage.setItem(STORAGE_PATIENTS_KEY, JSON.stringify(samplePatients));
-      return samplePatients;
+      const initialized = samplePatients.map((patient) => syncPatientStatus(patient));
+      localStorage.setItem(STORAGE_PATIENTS_KEY, JSON.stringify(initialized));
+      return initialized;
     }
-    return parsed.map((patient: Patient) => syncPatientStatus(patient));
+    const synced = parsed.map((patient: Patient) => syncPatientStatus(patient));
+    const hadMissingVisits = parsed.some((p: Patient) => !p.visits || p.visits.length === 0);
+    if (hadMissingVisits) {
+      try {
+        localStorage.setItem(STORAGE_PATIENTS_KEY, JSON.stringify(synced));
+      } catch (err) {
+        console.warn('Could not re-sync visits in storage', err);
+      }
+    }
+    return synced;
   } catch (err) {
     console.warn('Patient cache read error, using memory fallback', err);
-    return memoryPatients;
+    return memoryPatients.map((patient) => syncPatientStatus(patient));
   }
 };
 
